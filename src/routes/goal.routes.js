@@ -5,8 +5,10 @@ import {
     getGoal,
     createGoal,
     updateGoal,
-    deleteGoal
+    deleteGoal,
 } from '../controllers/goal.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const goalRouter = Router({ mergeParams: true });
 
@@ -45,7 +47,10 @@ export const goalRouter = Router({ mergeParams: true });
  * /api/users/{userId}/goals:
  *   get:
  *     summary: List goals
+ *     description: Requires `goal_view` permission.
  *     tags: [Goals]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -60,15 +65,27 @@ export const goalRouter = Router({ mergeParams: true });
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Goal'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-goalRouter.get('/', catchAsync(listGoals));
+goalRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('goal_view'),
+    catchAsync(listGoals)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/goals/{id}:
  *   get:
  *     summary: Get one goal
+ *     description: Requires `goal_view` permission.
  *     tags: [Goals]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -85,17 +102,29 @@ goalRouter.get('/', catchAsync(listGoals));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Goal'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-goalRouter.get('/:id', catchAsync(getGoal));
+goalRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('goal_view'),
+    catchAsync(getGoal)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/goals:
  *   post:
  *     summary: Create goal
+ *     description: Requires `goal_manage` permission.
  *     tags: [Goals]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -114,15 +143,27 @@ goalRouter.get('/:id', catchAsync(getGoal));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Goal'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-goalRouter.post('/', catchAsync(createGoal));
+goalRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('goal_manage'),
+    catchAsync(createGoal)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/goals/{id}:
  *   put:
  *     summary: Update goal
+ *     description: Requires `goal_manage` permission.
  *     tags: [Goals]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -145,15 +186,27 @@ goalRouter.post('/', catchAsync(createGoal));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Goal'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-goalRouter.put('/:id', catchAsync(updateGoal));
+goalRouter.put(
+    '/:id',
+    requireAuth,
+    requirePermission('goal_manage'),
+    catchAsync(updateGoal)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/goals/{id}:
  *   delete:
  *     summary: Delete goal
+ *     description: Requires `goal_manage` permission.
  *     tags: [Goals]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -166,5 +219,14 @@ goalRouter.put('/:id', catchAsync(updateGoal));
  *     responses:
  *       204:
  *         description: No Content
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-goalRouter.delete('/:id', catchAsync(deleteGoal));
+goalRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('goal_manage'),
+    catchAsync(deleteGoal)
+);

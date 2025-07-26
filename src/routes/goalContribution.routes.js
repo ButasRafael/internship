@@ -1,4 +1,3 @@
-// src/routes/goalContribution.routes.js
 import { Router } from 'express';
 import { catchAsync } from '../utils/catchAsync.js';
 import {
@@ -6,8 +5,10 @@ import {
     getGoalContribution,
     createGoalContribution,
     updateGoalContribution,
-    deleteGoalContribution
+    deleteGoalContribution,
 } from '../controllers/goalContribution.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const goalContributionRouter = Router({ mergeParams: true });
 
@@ -38,7 +39,10 @@ export const goalContributionRouter = Router({ mergeParams: true });
  * /api/users/{userId}/goals/{goalId}/contributions:
  *   get:
  *     summary: List contributions for a goal
+ *     description: Requires `goal_contribution_view` permission.
  *     tags: [Goal Contributions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -56,15 +60,27 @@ export const goalContributionRouter = Router({ mergeParams: true });
  *             schema:
  *               type: array
  *               items: { $ref: '#/components/schemas/GoalContribution' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-goalContributionRouter.get('/', catchAsync(listGoalContributions));
+goalContributionRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('goal_contribution_view'),
+    catchAsync(listGoalContributions)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/goals/{goalId}/contributions/{id}:
  *   get:
  *     summary: Get a contribution
+ *     description: Requires `goal_contribution_view` permission.
  *     tags: [Goal Contributions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -84,17 +100,29 @@ goalContributionRouter.get('/', catchAsync(listGoalContributions));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/GoalContribution' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-goalContributionRouter.get('/:id', catchAsync(getGoalContribution));
+goalContributionRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('goal_contribution_view'),
+    catchAsync(getGoalContribution)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/goals/{goalId}/contributions:
  *   post:
  *     summary: Create a contribution
+ *     description: Requires `goal_contribution_manage` permission.
  *     tags: [Goal Contributions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -115,15 +143,27 @@ goalContributionRouter.get('/:id', catchAsync(getGoalContribution));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/GoalContribution' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-goalContributionRouter.post('/', catchAsync(createGoalContribution));
+goalContributionRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('goal_contribution_manage'),
+    catchAsync(createGoalContribution)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/goals/{goalId}/contributions/{id}:
  *   put:
  *     summary: Update a contribution
+ *     description: Requires `goal_contribution_manage` permission.
  *     tags: [Goal Contributions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -148,17 +188,29 @@ goalContributionRouter.post('/', catchAsync(createGoalContribution));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/GoalContribution' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-goalContributionRouter.put('/:id', catchAsync(updateGoalContribution));
+goalContributionRouter.put(
+    '/:id',
+    requireAuth,
+    requirePermission('goal_contribution_manage'),
+    catchAsync(updateGoalContribution)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/goals/{goalId}/contributions/{id}:
  *   delete:
  *     summary: Delete a contribution
+ *     description: Requires `goal_contribution_manage` permission.
  *     tags: [Goal Contributions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -175,5 +227,14 @@ goalContributionRouter.put('/:id', catchAsync(updateGoalContribution));
  *     responses:
  *       204:
  *         description: No Content
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-goalContributionRouter.delete('/:id', catchAsync(deleteGoalContribution));
+goalContributionRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('goal_contribution_manage'),
+    catchAsync(deleteGoalContribution)
+);

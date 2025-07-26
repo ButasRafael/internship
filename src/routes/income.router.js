@@ -1,4 +1,3 @@
-// src/routes/income.routes.js
 import { Router } from 'express';
 import { catchAsync } from '../utils/catchAsync.js';
 import {
@@ -6,8 +5,10 @@ import {
     getIncome,
     createIncome,
     updateIncome,
-    deleteIncome
+    deleteIncome,
 } from '../controllers/income.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const incomeRouter = Router({ mergeParams: true });
 
@@ -43,6 +44,7 @@ export const incomeRouter = Router({ mergeParams: true });
  * /api/users/{userId}/incomes:
  *   get:
  *     summary: List incomes
+ *     description: Requires `income_view` permission.
  *     tags: [Incomes]
  *     security:
  *       - bearerAuth: []
@@ -60,14 +62,24 @@ export const incomeRouter = Router({ mergeParams: true });
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Income'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-incomeRouter.get('/', catchAsync(listIncomes));
+incomeRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('income_view'),
+    catchAsync(listIncomes)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/incomes/{id}:
  *   get:
  *     summary: Get income
+ *     description: Requires `income_view` permission.
  *     tags: [Incomes]
  *     security:
  *       - bearerAuth: []
@@ -87,16 +99,26 @@ incomeRouter.get('/', catchAsync(listIncomes));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Income'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-incomeRouter.get('/:id', catchAsync(getIncome));
+incomeRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('income_view'),
+    catchAsync(getIncome)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/incomes:
  *   post:
  *     summary: Create income
+ *     description: Requires `income_manage` permission.
  *     tags: [Incomes]
  *     security:
  *       - bearerAuth: []
@@ -118,14 +140,24 @@ incomeRouter.get('/:id', catchAsync(getIncome));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Income'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-incomeRouter.post('/', catchAsync(createIncome));
+incomeRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('income_manage'),
+    catchAsync(createIncome)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/incomes/{id}:
  *   put:
  *     summary: Update income
+ *     description: Requires `income_manage` permission.
  *     tags: [Incomes]
  *     security:
  *       - bearerAuth: []
@@ -151,14 +183,24 @@ incomeRouter.post('/', catchAsync(createIncome));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Income'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-incomeRouter.put('/:id', catchAsync(updateIncome));
+incomeRouter.put(
+    '/:id',
+    requireAuth,
+    requirePermission('income_manage'),
+    catchAsync(updateIncome)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/incomes/{id}:
  *   delete:
  *     summary: Delete income
+ *     description: Requires `income_manage` permission.
  *     tags: [Incomes]
  *     security:
  *       - bearerAuth: []
@@ -174,5 +216,14 @@ incomeRouter.put('/:id', catchAsync(updateIncome));
  *     responses:
  *       204:
  *         description: No Content
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-incomeRouter.delete('/:id', catchAsync(deleteIncome));
+incomeRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('income_manage'),
+    catchAsync(deleteIncome)
+);

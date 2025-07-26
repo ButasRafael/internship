@@ -3,6 +3,9 @@ import { logger } from '../utils/logger.js';
 import bcrypt from 'bcryptjs';
 
 const TABLES_IN_DROP_ORDER = [
+    'role_permissions',
+    'permissions',
+    'roles',
     'notifications',
     'alerts',
     'goal_contributions',
@@ -20,16 +23,35 @@ const TABLES_IN_DROP_ORDER = [
 ];
 
 const ddlStatements = [
+    `CREATE TABLE IF NOT EXISTS roles (
+                                          id   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                                          name VARCHAR(64) NOT NULL UNIQUE
+     )`,
+
+    `CREATE TABLE IF NOT EXISTS permissions (
+                                                id     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                                                action VARCHAR(128) NOT NULL UNIQUE
+     )`,
+
+    `CREATE TABLE IF NOT EXISTS role_permissions (
+                                                     role_id       BIGINT UNSIGNED NOT NULL,
+                                                     permission_id BIGINT UNSIGNED NOT NULL,
+                                                     PRIMARY KEY (role_id, permission_id),
+                                                     CONSTRAINT fk_rp_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+                                                     CONSTRAINT fk_rp_perm FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
+     )`,
+
     `CREATE TABLE IF NOT EXISTS users (
                                           id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                                           email          VARCHAR(255) UNIQUE NOT NULL,
-                                          password_hash  VARCHAR(255) NULL,                     -- NEW
-                                          role           ENUM('user','admin') NOT NULL DEFAULT 'user',
-                                          token_version  INT NOT NULL DEFAULT 0,                 -- NEW
+                                          password_hash  VARCHAR(255) NULL,
+                                          role_id        BIGINT UNSIGNED NOT NULL,
+                                          token_version  INT NOT NULL DEFAULT 0,
                                           hourly_rate    DECIMAL(10,2) NOT NULL DEFAULT 0,
                                           currency       CHAR(3) NOT NULL DEFAULT 'RON',
                                           timezone       VARCHAR(64) NOT NULL DEFAULT 'Europe/Bucharest',
-                                          created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                          created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                          CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id)
      )`,
 
     `CREATE TABLE IF NOT EXISTS categories (
@@ -150,58 +172,71 @@ const ddlStatements = [
      )`,
 
     `CREATE TABLE IF NOT EXISTS alerts (
-                                           id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                                           user_id BIGINT UNSIGNED NOT NULL,
-                                           name VARCHAR(255) NOT NULL,
-                                           rule_type ENUM(
-                                               'percent_expenses_of_income',
-                                               'object_breakeven_reached',
-                                               'budget_overrun'
-                                               ) NOT NULL,
-                                           rule_config JSON NOT NULL,
-                                           is_active TINYINT(1) NOT NULL DEFAULT 1,
-                                           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                           CONSTRAINT fk_alert_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                                           INDEX idx_alert_user (user_id)
-     )`,
+     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+     user_id BIGINT UNSIGNED NOT NULL,
+     name VARCHAR(255) NOT NULL,
+     rule_type ENUM('percent_expenses_of_income','object_breakeven_reached','budget_overrun') NOT NULL,
+     rule_config JSON NOT NULL,
+     is_active TINYINT(1) NOT NULL DEFAULT 1,
+     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     CONSTRAINT fk_alert_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+     INDEX idx_alert_user (user_id)
+   )`,
 
     `CREATE TABLE IF NOT EXISTS notifications (
-                                                  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                                                  alert_id BIGINT UNSIGNED NOT NULL,
-                                                  sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                                  channel ENUM('email','telegram','webhook') NOT NULL DEFAULT 'email',
-                                                  payload_json JSON NOT NULL,
-                                                  CONSTRAINT fk_notif_alert FOREIGN KEY (alert_id) REFERENCES alerts(id) ON DELETE CASCADE,
-                                                  INDEX idx_notif_alert (alert_id)
-     )`,
+     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+     alert_id BIGINT UNSIGNED NOT NULL,
+     sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     channel ENUM('email','telegram','webhook') NOT NULL DEFAULT 'email',
+     payload_json JSON NOT NULL,
+     CONSTRAINT fk_notif_alert FOREIGN KEY (alert_id) REFERENCES alerts(id) ON DELETE CASCADE,
+     INDEX idx_notif_alert (alert_id)
+   )`,
 
     `CREATE TABLE IF NOT EXISTS exchange_rates (
-                                                   day DATE NOT NULL,
-                                                   base CHAR(3) NOT NULL,
-                                                   quote CHAR(3) NOT NULL,
-                                                   rate DECIMAL(20,8) NOT NULL,
-                                                   PRIMARY KEY (day, base, quote)
-     )`,
+     day DATE NOT NULL,
+     base CHAR(3) NOT NULL,
+     quote CHAR(3) NOT NULL,
+     rate DECIMAL(20,8) NOT NULL,
+     PRIMARY KEY (day, base, quote)
+   )`,
+
     `CREATE TABLE IF NOT EXISTS incomes (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT UNSIGNED NOT NULL,
-    received_at DATETIME NOT NULL,
-    amount_cents INT UNSIGNED NOT NULL,
-    currency CHAR(3) NOT NULL DEFAULT 'RON',
-    source ENUM('salary','freelance','bonus','dividend','interest','gift','other') NOT NULL DEFAULT 'other',
-    recurring ENUM('none','weekly','monthly','yearly') NOT NULL DEFAULT 'none',
-    notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_income_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_income_user_date (user_id, received_at)
-  )`
+                                            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                                            user_id BIGINT UNSIGNED NOT NULL,
+                                            received_at DATETIME NOT NULL,
+                                            amount_cents INT UNSIGNED NOT NULL,
+                                            currency CHAR(3) NOT NULL DEFAULT 'RON',
+                                            source ENUM('salary','freelance','bonus','dividend','interest','gift','other') NOT NULL DEFAULT 'other',
+                                            recurring ENUM('none','weekly','monthly','yearly') NOT NULL DEFAULT 'none',
+                                            notes TEXT,
+                                            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                            CONSTRAINT fk_income_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                                            INDEX idx_income_user_date (user_id, received_at)
+     )`
 ];
 
+const PERMISSIONS = [
+    'activity_view','activity_manage',
+    'expense_view','expense_manage',
+    'category_view','category_manage',
+    'object_view','object_manage',
+    'budget_view','budget_manage',
+    'budget_allocation_view','budget_allocation_manage',
+    'goal_view','goal_manage',
+    'goal_contribution_view','goal_contribution_manage',
+    'alert_view','alert_manage',
+    'notification_view','notification_manage',
+    'scenario_view','scenario_manage',
+    'income_view','income_manage',
+    'user_view','user_manage',
+    'exchange_rate_view','exchange_rate_manage'
+];
 
 const seedUsers = [
-    { email: 'alice@example.com', role: 'admin', hourly_rate: 100, currency: 'RON', password: 'demo1234' },
-    { email: 'bob@example.com',   role: 'user',  hourly_rate: 80,  currency: 'RON', password: 'demo1234' },
-    { email: 'carol@example.com', role: 'user',  hourly_rate: 120, currency: 'RON', password: 'demo1234' }
+    { email: 'alice@example.com', role_id: 1, hourly_rate: 100, currency: 'RON', password: 'demo1234' }, // admin
+    { email: 'bob@example.com',   role_id: 2, hourly_rate: 80,  currency: 'RON', password: 'demo1234' }, // user
+    { email: 'carol@example.com', role_id: 2, hourly_rate: 120, currency: 'RON', password: 'demo1234' }  // user
 ];
 
 const seedCategories = (userId) => ([
@@ -358,10 +393,32 @@ function makePerUserSeeds(i, { userId, currency, categoryIds }) {
     }
 }
 
+async function seedRBAC(conn) {
+    await conn.query(`INSERT IGNORE INTO roles (id, name) VALUES (1,'admin'), (2,'user')`);
+
+    const [[{ pc }]] = await conn.query(`SELECT COUNT(*) pc FROM permissions`);
+    if (pc === 0) {
+        await conn.query(
+            `INSERT INTO permissions (action) VALUES ${PERMISSIONS.map(() => '(?)').join(',')}`,
+            PERMISSIONS
+        );
+    }
+
+    const [perms] = await conn.query(`SELECT id, action FROM permissions`);
+
+    const adminPairs = perms.map(p => [1, p.id]);
+    await conn.query(`INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES ?`, [adminPairs]);
+
+    const userAllowed = perms.filter(p => !/^user_/.test(p.action) && !/^exchange_rate_/.test(p.action));
+    const userPairs = userAllowed.map(p => [2, p.id]);
+    await conn.query(`INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES ?`, [userPairs]);
+}
+
 export async function bootstrapDb() {
     const conn = await pool.getConnection();
     try {
         await conn.beginTransaction();
+
         if (process.env.RESET_DB === 'true') {
             logger.warn('RESET_DB=true - dropping all tables');
             await conn.query('SET FOREIGN_KEY_CHECKS = 0');
@@ -375,6 +432,8 @@ export async function bootstrapDb() {
             await conn.query(stmt);
         }
 
+        await seedRBAC(conn);
+
         if (process.env.SEED_DEMO === 'true') {
             const [[{ count }]] = await conn.query('SELECT COUNT(*) AS count FROM users');
             if (count === 0) {
@@ -384,15 +443,16 @@ export async function bootstrapDb() {
                     values.push([
                         u.email,
                         password_hash,
-                        u.role,
+                        u.role_id,
+                        0,
                         u.hourly_rate,
                         u.currency,
-                        'Europe/Bucharest' // or u.timezone if you add it in seedUsers
+                        'Europe/Bucharest'
                     ]);
                 }
                 const [userRes] = await conn.query(
-                    `INSERT INTO users (email, password_hash, role, hourly_rate, currency, timezone)
-                        VALUES ?`,
+                    `INSERT INTO users (email, password_hash, role_id, token_version, hourly_rate, currency, timezone)
+           VALUES ?`,
                     [values]
                 );
                 logger.info('users seeded');
@@ -408,7 +468,6 @@ export async function bootstrapDb() {
                 for (let i = 0; i < userIds.length; i++) {
                     const userId = userIds[i];
                     const { currency } = seedUsers[i];
-
 
                     const incomes = seedIncomes(userId, currency, i);
                     if (incomes.length) {
@@ -446,8 +505,8 @@ export async function bootstrapDb() {
                     if (pack.objects?.length) {
                         await conn.query(
                             `INSERT INTO objects
-                             (user_id,category_id,name,price_cents,currency,purchase_date,expected_life_months,maintenance_cents_per_month,hours_saved_per_month,notes)
-                             VALUES ?`,
+               (user_id,category_id,name,price_cents,currency,purchase_date,expected_life_months,maintenance_cents_per_month,hours_saved_per_month,notes)
+               VALUES ?`,
                             [pack.objects]
                         );
                     }
@@ -455,8 +514,8 @@ export async function bootstrapDb() {
                     if (pack.activities?.length) {
                         await conn.query(
                             `INSERT INTO activities
-                             (user_id,category_id,name,duration_minutes,frequency,direct_cost_cents,saved_minutes,currency,notes)
-                             VALUES ?`,
+               (user_id,category_id,name,duration_minutes,frequency,direct_cost_cents,saved_minutes,currency,notes)
+               VALUES ?`,
                             [pack.activities]
                         );
                     }
@@ -502,14 +561,14 @@ export async function bootstrapDb() {
                     if (pack.alerts?.length) {
                         const [alertRes] = await conn.query(
                             `INSERT INTO alerts (user_id,name,rule_type,rule_config,is_active)
-                             VALUES ?`,
+               VALUES ?`,
                             [pack.alerts]
                         );
                         const alertId = alertRes.insertId;
                         if (pack.notifications) {
                             await conn.query(
                                 `INSERT INTO notifications (alert_id,sent_at,channel,payload_json)
-                                 VALUES ?`,
+                 VALUES ?`,
                                 [pack.notifications(alertId)]
                             );
                         }

@@ -5,8 +5,10 @@ import {
     getUser,
     createUser,
     updateUser,
-    deleteUser
+    deleteUser,
 } from '../controllers/user.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const userRouter = Router();
 
@@ -19,7 +21,6 @@ export const userRouter = Router();
  *       properties:
  *         id:          { type: integer, example: 1 }
  *         email:       { type: string,  example: alice@example.com }
- *         role:        { type: string,  enum: [user, admin], example: user }
  *         hourly_rate: { type: number,  example: 100 }
  *         currency:    { type: string,  example: RON }
  *         timezone:    { type: string,  example: Europe/Bucharest }
@@ -38,7 +39,10 @@ export const userRouter = Router();
  * /api/users:
  *   get:
  *     summary: List all users
+ *     description: Requires `user_view` permission.
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Array of users
@@ -48,15 +52,22 @@ export const userRouter = Router();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-userRouter.get('/', catchAsync(listUsers));
+userRouter.get('/', requireAuth, requirePermission('user_view'), catchAsync(listUsers));
 
 /**
  * @openapi
  * /api/users/{id}:
  *   get:
  *     summary: Get one user by id
+ *     description: Requires `user_view` permission.
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -69,17 +80,24 @@ userRouter.get('/', catchAsync(listUsers));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-userRouter.get('/:id', catchAsync(getUser));
+userRouter.get('/:id', requireAuth, requirePermission('user_view'), catchAsync(getUser));
 
 /**
  * @openapi
  * /api/users:
  *   post:
  *     summary: Create a new user
+ *     description: Requires `user_manage` permission.
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -93,15 +111,22 @@ userRouter.get('/:id', catchAsync(getUser));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-userRouter.post('/', catchAsync(createUser));
+userRouter.post('/', requireAuth, requirePermission('user_manage'), catchAsync(createUser));
 
 /**
  * @openapi
  * /api/users/{id}:
  *   put:
  *     summary: Update an existing user
+ *     description: Requires `user_manage` permission.
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -120,17 +145,24 @@ userRouter.post('/', catchAsync(createUser));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-userRouter.put('/:id', catchAsync(updateUser));
+userRouter.put('/:id', requireAuth, requirePermission('user_manage'), catchAsync(updateUser));
 
 /**
  * @openapi
  * /api/users/{id}:
  *   delete:
  *     summary: Delete a user
+ *     description: Requires `user_manage` permission.
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -139,5 +171,9 @@ userRouter.put('/:id', catchAsync(updateUser));
  *     responses:
  *       204:
  *         description: No Content – user removed
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-userRouter.delete('/:id', catchAsync(deleteUser));
+userRouter.delete('/:id', requireAuth, requirePermission('user_manage'), catchAsync(deleteUser));

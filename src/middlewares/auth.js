@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import { User } from '../models/user.model.js';
+import { getUserPermissionActions } from '../models/permission.model.js';
 
 function extractToken(req) {
     const header = req.headers.authorization || '';
@@ -7,15 +9,24 @@ function extractToken(req) {
     return null;
 }
 
-export function verifyAccessToken(req, _res, next) {
+export async function verifyAccessToken(req, _res, next) {
     const token = extractToken(req);
     if (!token) return next();
 
     try {
         const payload = jwt.verify(token, env.jwt.accessSecret);
-        req.user = payload;
-    } catch (e) {
-    }
+        const user = await User.findById(payload.sub);
+        if (!user || user.token_version !== payload.tv) return next();
+
+        const perms = await getUserPermissionActions(user.id);
+
+        req.user = {
+            sub: user.id,
+            tv: user.token_version,
+            role_id: user.role_id,
+            perms
+        };
+    } catch (e) {}
     next();
 }
 
@@ -23,28 +34,3 @@ export function requireAuth(req, res, next) {
     if (!req.user) return res.status(401).json({ error: 'Unauthenticated' });
     next();
 }
-
-export function requireRole(...allowed) {
-    return (req, res, next) => {
-        if (!req.user) return res.status(401).json({ error: 'Unauthenticated' });
-        if (!allowed.includes(req.user.role)) {
-            return res.status(403).json({ error: 'Forbidden' });
-        }
-        next();
-    };
-}
-
-export function requireSelfOrAdmin(paramName = 'userId') {
-    return (req, res, next) => {
-        if (!req.user) return res.status(401).json({ error: 'Unauthenticated' });
-
-        const pathUserId = Number(req.params[paramName]);
-        const authUserId = Number(req.user.sub);
-
-        if (req.user.role === 'admin' || authUserId === pathUserId) {
-            return next();
-        }
-        return res.status(403).json({ error: 'Forbidden' });
-    };
-}
-

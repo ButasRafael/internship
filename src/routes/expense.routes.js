@@ -5,8 +5,10 @@ import {
     getExpense,
     createExpense,
     updateExpense,
-    deleteExpense
+    deleteExpense,
 } from '../controllers/expense.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const expenseRouter = Router({ mergeParams: true });
 
@@ -48,7 +50,10 @@ export const expenseRouter = Router({ mergeParams: true });
  * /api/users/{userId}/expenses:
  *   get:
  *     summary: List all expenses for a user
+ *     description: Requires `expense_view` permission.
  *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -63,15 +68,27 @@ export const expenseRouter = Router({ mergeParams: true });
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Expense'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-expenseRouter.get('/', catchAsync(listExpenses));
+expenseRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('expense_view'),
+    catchAsync(listExpenses)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/expenses/{id}:
  *   get:
  *     summary: Get one expense
+ *     description: Requires `expense_view` permission.
  *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -88,17 +105,29 @@ expenseRouter.get('/', catchAsync(listExpenses));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Expense'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-expenseRouter.get('/:id', catchAsync(getExpense));
+expenseRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('expense_view'),
+    catchAsync(getExpense)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/expenses:
  *   post:
  *     summary: Add a new expense for a user
+ *     description: Requires `expense_manage` permission.
  *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -117,15 +146,27 @@ expenseRouter.get('/:id', catchAsync(getExpense));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Expense'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-expenseRouter.post('/', catchAsync(createExpense));
+expenseRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('expense_manage'),
+    catchAsync(createExpense)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/expenses/{id}:
  *   put:
  *     summary: Update an expense
+ *     description: Requires `expense_manage` permission.
  *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -148,15 +189,27 @@ expenseRouter.post('/', catchAsync(createExpense));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Expense'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-expenseRouter.put('/:id', catchAsync(updateExpense));
+expenseRouter.put(
+    '/:id',
+    requireAuth,
+    requirePermission('expense_manage'),
+    catchAsync(updateExpense)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/expenses/{id}:
  *   delete:
  *     summary: Delete an expense
+ *     description: Requires `expense_manage` permission.
  *     tags: [Expenses]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -169,5 +222,14 @@ expenseRouter.put('/:id', catchAsync(updateExpense));
  *     responses:
  *       204:
  *         description: No Content – expense removed
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-expenseRouter.delete('/:id', catchAsync(deleteExpense));
+expenseRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('expense_manage'),
+    catchAsync(deleteExpense)
+);

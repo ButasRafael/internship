@@ -5,8 +5,10 @@ import {
     getObject,
     createObject,
     updateObject,
-    deleteObject
+    deleteObject,
 } from '../controllers/object.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const objectRouter = Router({ mergeParams: true });
 
@@ -17,37 +19,17 @@ export const objectRouter = Router({ mergeParams: true });
  *     ObjectItem:
  *       type: object
  *       properties:
- *         id:
- *           type: integer
- *         user_id:
- *           type: integer
- *         category_id:
- *           type: integer
- *           nullable: true
- *         name:
- *           type: string
- *           example: Espressor
- *         price_cents:
- *           type: integer
- *           example: 120000
- *         currency:
- *           type: string
- *           example: RON
- *         purchase_date:
- *           type: string
- *           format: date
- *         expected_life_months:
- *           type: integer
- *           example: 24
- *         maintenance_cents_per_month:
- *           type: integer
- *           example: 0
- *         hours_saved_per_month:
- *           type: number
- *           example: 2.5
- *         notes:
- *           type: string
- *           nullable: true
+ *         id: { type: integer }
+ *         user_id: { type: integer }
+ *         category_id: { type: integer, nullable: true }
+ *         name: { type: string, example: Espressor }
+ *         price_cents: { type: integer, example: 120000 }
+ *         currency: { type: string, example: RON }
+ *         purchase_date: { type: string, format: date }
+ *         expected_life_months: { type: integer, example: 24 }
+ *         maintenance_cents_per_month: { type: integer, example: 0 }
+ *         hours_saved_per_month: { type: number, example: 2.5 }
+ *         notes: { type: string, nullable: true }
  *     ObjectInput:
  *       type: object
  *       required:
@@ -57,38 +39,26 @@ export const objectRouter = Router({ mergeParams: true });
  *         - purchase_date
  *         - expected_life_months
  *       properties:
- *         category_id:
- *           type: integer
- *           nullable: true
- *         name:
- *           type: string
- *         price_cents:
- *           type: integer
- *         currency:
- *           type: string
- *         purchase_date:
- *           type: string
- *           format: date
- *         expected_life_months:
- *           type: integer
- *         maintenance_cents_per_month:
- *           type: integer
- *           default: 0
- *         hours_saved_per_month:
- *           type: number
- *           default: 0
- *         notes:
- *           type: string
- *           nullable: true
+ *         category_id: { type: integer, nullable: true }
+ *         name: { type: string }
+ *         price_cents: { type: integer }
+ *         currency: { type: string }
+ *         purchase_date: { type: string, format: date }
+ *         expected_life_months: { type: integer }
+ *         maintenance_cents_per_month: { type: integer, default: 0 }
+ *         hours_saved_per_month: { type: number, default: 0 }
+ *         notes: { type: string, nullable: true }
  */
-
 
 /**
  * @openapi
  * /api/users/{userId}/objects:
  *   get:
  *     summary: List objects for a user
+ *     description: Requires `object_view` permission.
  *     tags: [Objects]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -103,15 +73,27 @@ export const objectRouter = Router({ mergeParams: true });
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/ObjectItem'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-objectRouter.get('/', catchAsync(listObjects));
+objectRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('object_view'),
+    catchAsync(listObjects)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/objects/{id}:
  *   get:
  *     summary: Get one object
+ *     description: Requires `object_view` permission.
  *     tags: [Objects]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -128,17 +110,29 @@ objectRouter.get('/', catchAsync(listObjects));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ObjectItem'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-objectRouter.get('/:id', catchAsync(getObject));
+objectRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('object_view'),
+    catchAsync(getObject)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/objects:
  *   post:
  *     summary: Create an object
+ *     description: Requires `object_manage` permission.
  *     tags: [Objects]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -157,15 +151,27 @@ objectRouter.get('/:id', catchAsync(getObject));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ObjectItem'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-objectRouter.post('/', catchAsync(createObject));
+objectRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('object_manage'),
+    catchAsync(createObject)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/objects/{id}:
  *   put:
  *     summary: Update an object
+ *     description: Requires `object_manage` permission.
  *     tags: [Objects]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -188,15 +194,27 @@ objectRouter.post('/', catchAsync(createObject));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ObjectItem'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-objectRouter.put('/:id', catchAsync(updateObject));
+objectRouter.put(
+    '/:id',
+    requireAuth,
+    requirePermission('object_manage'),
+    catchAsync(updateObject)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/objects/{id}:
  *   delete:
  *     summary: Delete an object
+ *     description: Requires `object_manage` permission.
  *     tags: [Objects]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -209,5 +227,14 @@ objectRouter.put('/:id', catchAsync(updateObject));
  *     responses:
  *       204:
  *         description: No Content
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-objectRouter.delete('/:id', catchAsync(deleteObject));
+objectRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('object_manage'),
+    catchAsync(deleteObject)
+);

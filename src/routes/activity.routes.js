@@ -5,8 +5,10 @@ import {
     getActivity,
     createActivity,
     updateActivity,
-    deleteActivity
+    deleteActivity,
 } from '../controllers/activity.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const activityRouter = Router({ mergeParams: true });
 
@@ -46,6 +48,7 @@ export const activityRouter = Router({ mergeParams: true });
  * /api/users/{userId}/activities:
  *   get:
  *     summary: List activities
+ *     description: Requires `activity_view` permission.
  *     tags: [Activities]
  *     security:
  *       - bearerAuth: []
@@ -68,13 +71,19 @@ export const activityRouter = Router({ mergeParams: true });
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-activityRouter.get('/', catchAsync(listActivities));
+activityRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('activity_view'),
+    catchAsync(listActivities)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/activities/{id}:
  *   get:
  *     summary: Get one activity
+ *     description: Requires `activity_view` permission.
  *     tags: [Activities]
  *     security:
  *       - bearerAuth: []
@@ -101,13 +110,19 @@ activityRouter.get('/', catchAsync(listActivities));
  *       404:
  *         description: Not found
  */
-activityRouter.get('/:id', catchAsync(getActivity));
+activityRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('activity_view'),
+    catchAsync(getActivity)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/activities:
  *   post:
  *     summary: Create activity
+ *     description: Requires `activity_manage` permission.
  *     tags: [Activities]
  *     security:
  *       - bearerAuth: []
@@ -134,13 +149,19 @@ activityRouter.get('/:id', catchAsync(getActivity));
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-activityRouter.post('/', catchAsync(createActivity));
+activityRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('activity_manage'),
+    catchAsync(createActivity)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/activities/{id}:
  *   put:
  *     summary: Update activity
+ *     description: Requires `activity_manage` permission.
  *     tags: [Activities]
  *     security:
  *       - bearerAuth: []
@@ -171,13 +192,19 @@ activityRouter.post('/', catchAsync(createActivity));
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-activityRouter.put('/:id', catchAsync(updateActivity));
+activityRouter.put(
+    '/:id',
+    requireAuth,
+    requirePermission('activity_manage'),
+    catchAsync(updateActivity)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/activities/{id}:
  *   delete:
  *     summary: Delete activity
+ *     description: Requires `activity_manage` permission.
  *     tags: [Activities]
  *     security:
  *       - bearerAuth: []
@@ -198,4 +225,9 @@ activityRouter.put('/:id', catchAsync(updateActivity));
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-activityRouter.delete('/:id', catchAsync(deleteActivity));
+activityRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('activity_manage'),
+    catchAsync(deleteActivity)
+);

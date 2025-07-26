@@ -12,10 +12,10 @@ export const getUser = async (req, res) => {
 
 export const createUser = async (req, res, next) => {
     try {
-        const { role, ...safe } = req.body;
+        const { role_id = 2, ...safe } = req.body;
         const user = await User.create({
             ...safe,
-            role: 'user',
+            role_id
         });
         res.status(201).json(user);
     } catch (err) {

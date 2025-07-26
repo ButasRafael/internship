@@ -5,8 +5,10 @@ import {
     getAlert,
     createAlert,
     updateAlert,
-    deleteAlert
+    deleteAlert,
 } from '../controllers/alert.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const alertRouter = Router({ mergeParams: true });
 
@@ -43,6 +45,7 @@ export const alertRouter = Router({ mergeParams: true });
  * /api/users/{userId}/alerts:
  *   get:
  *     summary: List user alerts
+ *     description: Requires `alert_view` permission.
  *     tags: [Alerts]
  *     security:
  *       - bearerAuth: []
@@ -64,13 +67,19 @@ export const alertRouter = Router({ mergeParams: true });
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-alertRouter.get('/', catchAsync(listAlerts));
+alertRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('alert_view'),
+    catchAsync(listAlerts)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/alerts/{id}:
  *   get:
  *     summary: Get alert by id
+ *     description: Requires `alert_view` permission.
  *     tags: [Alerts]
  *     security:
  *       - bearerAuth: []
@@ -96,13 +105,19 @@ alertRouter.get('/', catchAsync(listAlerts));
  *       404:
  *         description: Not found
  */
-alertRouter.get('/:id', catchAsync(getAlert));
+alertRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('alert_view'),
+    catchAsync(getAlert)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/alerts:
  *   post:
  *     summary: Create alert
+ *     description: Requires `alert_manage` permission.
  *     tags: [Alerts]
  *     security:
  *       - bearerAuth: []
@@ -127,13 +142,19 @@ alertRouter.get('/:id', catchAsync(getAlert));
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-alertRouter.post('/', catchAsync(createAlert));
+alertRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('alert_manage'),
+    catchAsync(createAlert)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/alerts/{id}:
  *   put:
  *     summary: Update alert
+ *     description: Requires `alert_manage` permission.
  *     tags: [Alerts]
  *     security:
  *       - bearerAuth: []
@@ -162,13 +183,19 @@ alertRouter.post('/', catchAsync(createAlert));
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-alertRouter.put('/:id', catchAsync(updateAlert));
+alertRouter.put(
+    '/:id',
+    requireAuth,
+    requirePermission('alert_manage'),
+    catchAsync(updateAlert)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/alerts/{id}:
  *   delete:
  *     summary: Delete alert
+ *     description: Requires `alert_manage` permission.
  *     tags: [Alerts]
  *     security:
  *       - bearerAuth: []
@@ -189,4 +216,9 @@ alertRouter.put('/:id', catchAsync(updateAlert));
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-alertRouter.delete('/:id', catchAsync(deleteAlert));
+alertRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('alert_manage'),
+    catchAsync(deleteAlert)
+);

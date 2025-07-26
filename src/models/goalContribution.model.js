@@ -8,7 +8,6 @@ export class GoalContribution {
         hours = null,
         source_type = 'manual'
     }) {
-        // Verify goal ownership
         const [[goal]] = await pool.execute(
             `SELECT id FROM goals WHERE id=? AND user_id=?`,
             [goal_id, user_id]
@@ -48,7 +47,6 @@ export class GoalContribution {
     }
 
     static async update(id, goal_id, user_id, data) {
-        // Ensure the contribution exists & belongs to user+goal
         const existing = await this.findByIdForUser(id, user_id);
         if (!existing || existing.goal_id !== Number(goal_id)) return null;
 
@@ -83,9 +81,7 @@ export class GoalContribution {
         return true;
     }
 
-    // Optional helper if you ever need to wipe a whole goal (with user safety)
     static async removeByGoal(goal_id, user_id) {
-        // Check ownership first
         const [[goal]] = await pool.execute(
             `SELECT id FROM goals WHERE id=? AND user_id=?`,
             [goal_id, user_id]

@@ -1,4 +1,3 @@
-// src/models/income.model.js
 import { pool } from '../config/db.js';
 
 export class Income {

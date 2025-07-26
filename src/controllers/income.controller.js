@@ -1,4 +1,3 @@
-// src/controllers/income.controller.js
 import { Income } from '../models/income.model.js';
 
 export const listIncomes = async (req, res) => {

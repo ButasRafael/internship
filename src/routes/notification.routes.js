@@ -4,8 +4,10 @@ import {
     listNotificationsForAlert,
     getNotification,
     createNotification,
-    deleteNotification
+    deleteNotification,
 } from '../controllers/notification.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const notificationRouter = Router({ mergeParams: true });
 
@@ -35,7 +37,10 @@ export const notificationRouter = Router({ mergeParams: true });
  * /api/users/{userId}/alerts/{alertId}/notifications:
  *   get:
  *     summary: List notifications for an alert
+ *     description: Requires `notification_view` permission.
  *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -53,16 +58,27 @@ export const notificationRouter = Router({ mergeParams: true });
  *             schema:
  *               type: array
  *               items: { $ref: '#/components/schemas/Notification' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-notificationRouter.get('/', catchAsync(listNotificationsForAlert));
-
+notificationRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('notification_view'),
+    catchAsync(listNotificationsForAlert)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/alerts/{alertId}/notifications/{id}:
  *   get:
  *     summary: Get one notification
+ *     description: Requires `notification_view` permission.
  *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -82,17 +98,29 @@ notificationRouter.get('/', catchAsync(listNotificationsForAlert));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Notification' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-notificationRouter.get('/:id', catchAsync(getNotification));
+notificationRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('notification_view'),
+    catchAsync(getNotification)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/alerts/{alertId}/notifications:
  *   post:
  *     summary: Manually create (log) a notification
+ *     description: Requires `notification_manage` permission.
  *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -113,15 +141,27 @@ notificationRouter.get('/:id', catchAsync(getNotification));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Notification' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-notificationRouter.post('/', catchAsync(createNotification));
+notificationRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('notification_manage'),
+    catchAsync(createNotification)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/alerts/{alertId}/notifications/{id}:
  *   delete:
  *     summary: Delete notification
+ *     description: Requires `notification_manage` permission.
  *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -138,5 +178,14 @@ notificationRouter.post('/', catchAsync(createNotification));
  *     responses:
  *       204:
  *         description: No Content
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-notificationRouter.delete('/:id', catchAsync(deleteNotification));
+notificationRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('notification_manage'),
+    catchAsync(deleteNotification)
+);

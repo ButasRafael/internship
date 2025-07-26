@@ -3,16 +3,16 @@ import { pool } from '../config/db.js';
 export class User {
     static async create({
                             email,
-                            role = 'user',
+                            role_id = 2,
                             hourly_rate = 0,
                             currency = 'RON',
                             timezone = 'Europe/Bucharest',
                             password_hash = null
                         }) {
         const [res] = await pool.execute(
-            `INSERT INTO users (email, password_hash, role, token_version, hourly_rate, currency, timezone)
+            `INSERT INTO users (email, password_hash, role_id, token_version, hourly_rate, currency, timezone)
              VALUES (?,?,?,?,?,?,?)`,
-            [email, password_hash, role, 0, hourly_rate, currency, timezone]
+            [email, password_hash, role_id, 0, hourly_rate, currency, timezone]
         );
         return this.findById(res.insertId);
     }
@@ -33,7 +33,7 @@ export class User {
     }
 
     static async update(id, data) {
-        const allowed = ['email', 'role', 'hourly_rate', 'currency', 'timezone', 'password_hash'];
+        const allowed = ['email', 'role_id', 'hourly_rate', 'currency', 'timezone', 'password_hash'];
         const fields = [];
         const values = [];
         for (const [k, v] of Object.entries(data)) {

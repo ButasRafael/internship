@@ -1,14 +1,7 @@
-// src/routes/auth.routes.js
 import { Router } from 'express';
 import { catchAsync } from '../utils/catchAsync.js';
-import {
-    register,
-    login,
-    refresh,
-    logout,
-    me
-} from '../controllers/auth.controller.js';
-import {requireAuth} from "../middlewares/auth.js";
+import { register, login, refresh, logout, me } from '../controllers/auth.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
 
 export const authRouter = Router();
 
@@ -24,6 +17,21 @@ export const authRouter = Router();
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
+ *   schemas:
+ *     AuthSuccess:
+ *       type: object
+ *       properties:
+ *         access_token: { type: string }
+ *         token_type:   { type: string, example: bearer }
+ *         # Pick ONE of the following to match your implementation:
+ *         # expires_in:  { type: integer, example: 900 }   # if you return seconds as a number
+ *         expires_in:    { type: string,  example: "7m" }  # if you return a duration string
+ *         user:
+ *           type: object
+ *           properties:
+ *             id:      { type: integer }
+ *             email:   { type: string, format: email }
+ *             role_id: { type: integer }
  */
 
 /**
@@ -41,14 +49,18 @@ export const authRouter = Router();
  *             type: object
  *             required: [email, password]
  *             properties:
- *               email:    { type: string }
- *               password: { type: string, format: password }
+ *               email:       { type: string, format: email }
+ *               password:    { type: string, format: password }
  *               hourly_rate: { type: number, default: 0 }
  *               currency:    { type: string, default: RON }
  *               timezone:    { type: string, default: Europe/Bucharest }
  *     responses:
  *       201:
  *         description: User created + access token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthSuccess'
  */
 authRouter.post('/register', catchAsync(register));
 
@@ -67,11 +79,15 @@ authRouter.post('/register', catchAsync(register));
  *             type: object
  *             required: [email, password]
  *             properties:
- *               email:    { type: string }
+ *               email:    { type: string, format: email }
  *               password: { type: string, format: password }
  *     responses:
  *       200:
  *         description: Access token + refresh cookie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthSuccess'
  */
 authRouter.post('/login', catchAsync(login));
 
@@ -92,8 +108,8 @@ authRouter.post('/login', catchAsync(login));
  *               type: object
  *               properties:
  *                 id:          { type: integer }
- *                 email:       { type: string }
- *                 role:        { type: string, enum: [user, admin] }
+ *                 email:       { type: string, format: email }
+ *                 role_id:     { type: integer }
  *                 hourly_rate: { type: number }
  *                 currency:    { type: string }
  *                 timezone:    { type: string }
@@ -109,11 +125,22 @@ authRouter.get('/me', requireAuth, catchAsync(me));
  *   post:
  *     summary: Refresh access token (uses httpOnly cookie)
  *     tags: [Auth]
- *     security:
- *     - refreshCookie: []
+ *     security: []
  *     responses:
  *       200:
  *         description: New access token + rotated refresh cookie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 access_token: { type: string }
+ *                 token_type:   { type: string, example: bearer }
+ *                 # Again, choose type to match your controller:
+ *                 # expires_in:  { type: integer, example: 900 }
+ *                 expires_in:    { type: string,  example: "7m" }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  */
 authRouter.post('/refresh', catchAsync(refresh));
 

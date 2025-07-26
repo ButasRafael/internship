@@ -5,8 +5,10 @@ import {
     getBudget,
     createBudget,
     updateBudget,
-    deleteBudget
+    deleteBudget,
 } from '../controllers/budget.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const budgetRouter = Router({ mergeParams: true });
 
@@ -37,7 +39,10 @@ export const budgetRouter = Router({ mergeParams: true });
  * /api/users/{userId}/budgets:
  *   get:
  *     summary: List budgets
+ *     description: Requires `budget_view` permission.
  *     tags: [Budgets]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -51,15 +56,27 @@ export const budgetRouter = Router({ mergeParams: true });
  *             schema:
  *               type: array
  *               items: { $ref: '#/components/schemas/Budget' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-budgetRouter.get('/', catchAsync(listBudgets));
+budgetRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('budget_view'),
+    catchAsync(listBudgets)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/budgets/{id}:
  *   get:
  *     summary: Get a budget
+ *     description: Requires `budget_view` permission.
  *     tags: [Budgets]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -75,17 +92,29 @@ budgetRouter.get('/', catchAsync(listBudgets));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Budget' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-budgetRouter.get('/:id', catchAsync(getBudget));
+budgetRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('budget_view'),
+    catchAsync(getBudget)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/budgets:
  *   post:
  *     summary: Create budget
+ *     description: Requires `budget_manage` permission.
  *     tags: [Budgets]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -102,15 +131,27 @@ budgetRouter.get('/:id', catchAsync(getBudget));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Budget' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-budgetRouter.post('/', catchAsync(createBudget));
+budgetRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('budget_manage'),
+    catchAsync(createBudget)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/budgets/{id}:
  *   put:
  *     summary: Update budget
+ *     description: Requires `budget_manage` permission.
  *     tags: [Budgets]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -131,15 +172,27 @@ budgetRouter.post('/', catchAsync(createBudget));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Budget' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-budgetRouter.put('/:id', catchAsync(updateBudget));
+budgetRouter.put(
+    '/:id',
+    requireAuth,
+    requirePermission('budget_manage'),
+    catchAsync(updateBudget)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/budgets/{id}:
  *   delete:
  *     summary: Delete budget
+ *     description: Requires `budget_manage` permission.
  *     tags: [Budgets]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -152,5 +205,14 @@ budgetRouter.put('/:id', catchAsync(updateBudget));
  *     responses:
  *       204:
  *         description: No Content
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-budgetRouter.delete('/:id', catchAsync(deleteBudget));
+budgetRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('budget_manage'),
+    catchAsync(deleteBudget)
+);

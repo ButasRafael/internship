@@ -3,7 +3,7 @@ import { env } from '../config/env.js';
 
 export function signAccessToken(user) {
     return jwt.sign(
-        { sub: user.id, role: user.role, tv: user.token_version },
+        { sub: user.id, tv: user.token_version },
         env.jwt.accessSecret,
         { expiresIn: env.jwt.accessTtl }
     );

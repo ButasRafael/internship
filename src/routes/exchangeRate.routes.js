@@ -4,8 +4,10 @@ import {
     listRates,
     getRate,
     upsertRate,
-    deleteRate
+    deleteRate,
 } from '../controllers/exchangeRate.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const exchangeRateRouter = Router();
 
@@ -35,7 +37,10 @@ export const exchangeRateRouter = Router();
  * /api/exchange-rates:
  *   get:
  *     summary: List / query exchange rates
+ *     description: Requires `exchange_rate_view` permission.
  *     tags: [Exchange Rates]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: day
@@ -54,15 +59,27 @@ export const exchangeRateRouter = Router();
  *             schema:
  *               type: array
  *               items: { $ref: '#/components/schemas/ExchangeRate' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-exchangeRateRouter.get('/', catchAsync(listRates));
+exchangeRateRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('exchange_rate_view'),
+    catchAsync(listRates)
+);
 
 /**
  * @openapi
  * /api/exchange-rates/{day}/{base}/{quote}:
  *   get:
  *     summary: Get a specific rate
+ *     description: Requires `exchange_rate_view` permission.
  *     tags: [Exchange Rates]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: day
@@ -82,17 +99,29 @@ exchangeRateRouter.get('/', catchAsync(listRates));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ExchangeRate' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-exchangeRateRouter.get('/:day/:base/:quote', catchAsync(getRate));
+exchangeRateRouter.get(
+    '/:day/:base/:quote',
+    requireAuth,
+    requirePermission('exchange_rate_view'),
+    catchAsync(getRate)
+);
 
 /**
  * @openapi
  * /api/exchange-rates:
  *   post:
- *     summary: Upsert an exchange rate (admin)
+ *     summary: Upsert an exchange rate
+ *     description: Requires `exchange_rate_manage` permission.
  *     tags: [Exchange Rates]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -104,15 +133,27 @@ exchangeRateRouter.get('/:day/:base/:quote', catchAsync(getRate));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ExchangeRate' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-exchangeRateRouter.post('/', catchAsync(upsertRate));
+exchangeRateRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('exchange_rate_manage'),
+    catchAsync(upsertRate)
+);
 
 /**
  * @openapi
  * /api/exchange-rates/{day}/{base}/{quote}:
  *   delete:
- *     summary: Delete a specific rate (admin)
+ *     summary: Delete a specific rate
+ *     description: Requires `exchange_rate_manage` permission.
  *     tags: [Exchange Rates]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: day
@@ -129,5 +170,14 @@ exchangeRateRouter.post('/', catchAsync(upsertRate));
  *     responses:
  *       204:
  *         description: No Content
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-exchangeRateRouter.delete('/:day/:base/:quote', catchAsync(deleteRate));
+exchangeRateRouter.delete(
+    '/:day/:base/:quote',
+    requireAuth,
+    requirePermission('exchange_rate_manage'),
+    catchAsync(deleteRate)
+);

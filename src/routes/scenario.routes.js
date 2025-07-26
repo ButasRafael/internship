@@ -1,4 +1,3 @@
-// src/routes/scenario.routes.js
 import { Router } from 'express';
 import { catchAsync } from '../utils/catchAsync.js';
 import {
@@ -6,8 +5,10 @@ import {
     getScenario,
     createScenario,
     updateScenario,
-    deleteScenario
+    deleteScenario,
 } from '../controllers/scenario.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const scenarioRouter = Router({ mergeParams: true });
 
@@ -36,7 +37,10 @@ export const scenarioRouter = Router({ mergeParams: true });
  * /api/users/{userId}/scenarios:
  *   get:
  *     summary: List scenarios
+ *     description: Requires `scenario_view` permission.
  *     tags: [Scenarios]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -50,15 +54,27 @@ export const scenarioRouter = Router({ mergeParams: true });
  *             schema:
  *               type: array
  *               items: { $ref: '#/components/schemas/Scenario' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-scenarioRouter.get('/', catchAsync(listScenarios));
+scenarioRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('scenario_view'),
+    catchAsync(listScenarios)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/scenarios/{id}:
  *   get:
  *     summary: Get one scenario
+ *     description: Requires `scenario_view` permission.
  *     tags: [Scenarios]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -74,17 +90,29 @@ scenarioRouter.get('/', catchAsync(listScenarios));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Scenario' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-scenarioRouter.get('/:id', catchAsync(getScenario));
+scenarioRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('scenario_view'),
+    catchAsync(getScenario)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/scenarios:
  *   post:
  *     summary: Create scenario
+ *     description: Requires `scenario_manage` permission.
  *     tags: [Scenarios]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -101,15 +129,27 @@ scenarioRouter.get('/:id', catchAsync(getScenario));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Scenario' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-scenarioRouter.post('/', catchAsync(createScenario));
+scenarioRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('scenario_manage'),
+    catchAsync(createScenario)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/scenarios/{id}:
  *   put:
  *     summary: Update scenario
+ *     description: Requires `scenario_manage` permission.
  *     tags: [Scenarios]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -130,15 +170,27 @@ scenarioRouter.post('/', catchAsync(createScenario));
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Scenario' }
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-scenarioRouter.put('/:id', catchAsync(updateScenario));
+scenarioRouter.put(
+    '/:id',
+    requireAuth,
+    requirePermission('scenario_manage'),
+    catchAsync(updateScenario)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/scenarios/{id}:
  *   delete:
  *     summary: Delete scenario
+ *     description: Requires `scenario_manage` permission.
  *     tags: [Scenarios]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -151,5 +203,14 @@ scenarioRouter.put('/:id', catchAsync(updateScenario));
  *     responses:
  *       204:
  *         description: No Content
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-scenarioRouter.delete('/:id', catchAsync(deleteScenario));
+scenarioRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('scenario_manage'),
+    catchAsync(deleteScenario)
+);

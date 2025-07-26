@@ -30,7 +30,7 @@ export const register = async (req, res, next) => {
 
         const user = await User.create({
             email,
-            role: 'user',
+            role_id: 2,
             hourly_rate,
             currency,
             timezone,
@@ -46,7 +46,7 @@ export const register = async (req, res, next) => {
             access_token: accessToken,
             token_type: 'bearer',
             expires_in: env.jwt.accessTtl,
-            user: { id: user.id, email: user.email, role: user.role }
+            user: { id: user.id, email: user.email, role_id: user.role_id }
         });
     } catch (err) {
         next(err);
@@ -73,7 +73,7 @@ export const login = async (req, res, next) => {
             access_token: accessToken,
             token_type: 'bearer',
             expires_in: env.jwt.accessTtl,
-            user: { id: user.id, email: user.email, role: user.role }
+            user: { id: user.id, email: user.email, role_id: user.role_id }
         });
     } catch (err) {
         next(err);
@@ -87,8 +87,8 @@ export const me = async (req, res, next) => {
         const user = await User.findById(req.user.sub);
         if (!user) return res.status(404).json({ error: 'User not found' });
 
-        const { id, email, role, hourly_rate, currency, timezone, created_at } = user;
-        res.json({ id, email, role, hourly_rate, currency, timezone, created_at });
+        const { id, email, role_id, hourly_rate, currency, timezone, created_at } = user;
+        res.json({ id, email, role_id, hourly_rate, currency, timezone, created_at });
     } catch (err) {
         next(err);
     }
@@ -153,4 +153,3 @@ export const logout = async (req, res, next) => {
         next(err);
     }
 };
-

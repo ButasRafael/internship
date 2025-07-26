@@ -5,8 +5,10 @@ import {
     getCategory,
     createCategory,
     updateCategory,
-    deleteCategory
+    deleteCategory,
 } from '../controllers/category.controller.js';
+import { requireAuth } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/permission.js';
 
 export const categoryRouter = Router({ mergeParams: true });
 
@@ -34,7 +36,10 @@ export const categoryRouter = Router({ mergeParams: true });
  * /api/users/{userId}/categories:
  *   get:
  *     summary: List categories for a user
+ *     description: Requires `category_view` permission.
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -49,15 +54,27 @@ export const categoryRouter = Router({ mergeParams: true });
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Category'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-categoryRouter.get('/', catchAsync(listCategories));
+categoryRouter.get(
+    '/',
+    requireAuth,
+    requirePermission('category_view'),
+    catchAsync(listCategories)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/categories/{id}:
  *   get:
  *     summary: Get one category
+ *     description: Requires `category_view` permission.
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -74,17 +91,29 @@ categoryRouter.get('/', catchAsync(listCategories));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Category'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
  */
-categoryRouter.get('/:id', catchAsync(getCategory));
+categoryRouter.get(
+    '/:id',
+    requireAuth,
+    requirePermission('category_view'),
+    catchAsync(getCategory)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/categories:
  *   post:
  *     summary: Create category
+ *     description: Requires `category_manage` permission.
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -103,15 +132,27 @@ categoryRouter.get('/:id', catchAsync(getCategory));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Category'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-categoryRouter.post('/', catchAsync(createCategory));
+categoryRouter.post(
+    '/',
+    requireAuth,
+    requirePermission('category_manage'),
+    catchAsync(createCategory)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/categories/{id}:
  *   put:
  *     summary: Update category
+ *     description: Requires `category_manage` permission.
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -134,15 +175,27 @@ categoryRouter.post('/', catchAsync(createCategory));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Category'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-categoryRouter.put('/:id', catchAsync(updateCategory));
+categoryRouter.put(
+    '/:id',
+    requireAuth,
+    requirePermission('category_manage'),
+    catchAsync(updateCategory)
+);
 
 /**
  * @openapi
  * /api/users/{userId}/categories/{id}:
  *   delete:
  *     summary: Delete category
+ *     description: Requires `category_manage` permission.
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -155,5 +208,14 @@ categoryRouter.put('/:id', catchAsync(updateCategory));
  *     responses:
  *       204:
  *         description: No Content
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
-categoryRouter.delete('/:id', catchAsync(deleteCategory));
+categoryRouter.delete(
+    '/:id',
+    requireAuth,
+    requirePermission('category_manage'),
+    catchAsync(deleteCategory)
+);

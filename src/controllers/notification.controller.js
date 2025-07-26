@@ -17,7 +17,6 @@ export const getNotification = async (req, res) => {
 
 export const createNotification = async (req, res, next) => {
     try {
-        // ensure alert belongs to user
         const alert = await Alert.findById(req.params.alertId, req.params.userId);
         if (!alert) return res.status(404).json({ error: 'Alert not found' });
 

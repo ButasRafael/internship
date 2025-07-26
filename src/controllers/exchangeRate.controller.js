@@ -14,7 +14,7 @@ export const getRate = async (req, res) => {
 
 export const upsertRate = async (req, res, next) => {
     try {
-        const r = await ExchangeRate.upsert(req.body); // { day, base, quote, rate }
+        const r = await ExchangeRate.upsert(req.body);
         res.status(201).json(r);
     } catch (err) {
         next(err);
