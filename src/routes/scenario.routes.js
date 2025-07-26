@@ -27,6 +27,7 @@ export const scenarioRouter = Router({ mergeParams: true });
  *     ScenarioInput:
  *       type: object
  *       required: [name, params_json]
+ *       additionalProperties: false
  *       properties:
  *         name:        { type: string }
  *         params_json: { type: object, additionalProperties: true }
@@ -59,12 +60,7 @@ export const scenarioRouter = Router({ mergeParams: true });
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-scenarioRouter.get(
-    '/',
-    requireAuth,
-    requirePermission('scenario_view'),
-    catchAsync(listScenarios)
-);
+scenarioRouter.get('/', requireAuth, requirePermission('scenario_view'), catchAsync(listScenarios));
 
 /**
  * @openapi
@@ -96,13 +92,11 @@ scenarioRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
-scenarioRouter.get(
-    '/:id',
-    requireAuth,
-    requirePermission('scenario_view'),
-    catchAsync(getScenario)
-);
+scenarioRouter.get('/:id', requireAuth, requirePermission('scenario_view'), catchAsync(getScenario));
 
 /**
  * @openapi
@@ -134,12 +128,7 @@ scenarioRouter.get(
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-scenarioRouter.post(
-    '/',
-    requireAuth,
-    requirePermission('scenario_manage'),
-    catchAsync(createScenario)
-);
+scenarioRouter.post('/', requireAuth, requirePermission('scenario_manage'), catchAsync(createScenario));
 
 /**
  * @openapi
@@ -174,13 +163,13 @@ scenarioRouter.post(
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
-scenarioRouter.put(
-    '/:id',
-    requireAuth,
-    requirePermission('scenario_manage'),
-    catchAsync(updateScenario)
-);
+scenarioRouter.put('/:id', requireAuth, requirePermission('scenario_manage'), catchAsync(updateScenario));
 
 /**
  * @openapi
@@ -208,9 +197,4 @@ scenarioRouter.put(
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-scenarioRouter.delete(
-    '/:id',
-    requireAuth,
-    requirePermission('scenario_manage'),
-    catchAsync(deleteScenario)
-);
+scenarioRouter.delete('/:id', requireAuth, requirePermission('scenario_manage'), catchAsync(deleteScenario));

@@ -20,6 +20,7 @@ export const authRouter = Router();
  *   schemas:
  *     AuthSuccess:
  *       type: object
+ *       additionalProperties: false
  *       properties:
  *         access_token: { type: string }
  *         token_type:   { type: string, example: bearer }
@@ -46,14 +47,7 @@ export const authRouter = Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [email, password]
- *             properties:
- *               email:       { type: string, format: email }
- *               password:    { type: string, format: password }
- *               hourly_rate: { type: number, default: 0 }
- *               currency:    { type: string, default: RON }
- *               timezone:    { type: string, default: Europe/Bucharest }
+ *             $ref: '#/components/schemas/AuthRegisterInput'
  *     responses:
  *       201:
  *         description: User created + access token
@@ -61,6 +55,11 @@ export const authRouter = Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AuthSuccess'
+ *       409:
+ *         description: Email already exists
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
 authRouter.post('/register', catchAsync(register));
 
@@ -76,11 +75,7 @@ authRouter.post('/register', catchAsync(register));
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [email, password]
- *             properties:
- *               email:    { type: string, format: email }
- *               password: { type: string, format: password }
+ *             $ref: '#/components/schemas/AuthLoginInput'
  *     responses:
  *       200:
  *         description: Access token + refresh cookie
@@ -88,6 +83,11 @@ authRouter.post('/register', catchAsync(register));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AuthSuccess'
+ *       401:
+ *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
 authRouter.post('/login', catchAsync(login));
 
@@ -133,6 +133,7 @@ authRouter.get('/me', requireAuth, catchAsync(me));
  *           application/json:
  *             schema:
  *               type: object
+ *               additionalProperties: false
  *               properties:
  *                 access_token: { type: string }
  *                 token_type:   { type: string, example: bearer }

@@ -30,6 +30,7 @@ export const incomeRouter = Router({ mergeParams: true });
  *     IncomeInput:
  *       type: object
  *       required: [received_at, amount_cents, currency]
+ *       additionalProperties: false
  *       properties:
  *         received_at:  { type: string, format: date-time }
  *         amount_cents: { type: integer }
@@ -105,6 +106,10 @@ incomeRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 incomeRouter.get(
     '/:id',
@@ -187,6 +192,12 @@ incomeRouter.post(
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 incomeRouter.put(
     '/:id',

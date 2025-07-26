@@ -32,6 +32,7 @@ export const activityRouter = Router({ mergeParams: true });
  *     ActivityInput:
  *       type: object
  *       required: [name, duration_minutes, frequency]
+ *       additionalProperties: false
  *       properties:
  *         category_id:       { type: integer, nullable: true }
  *         name:              { type: string }
@@ -109,6 +110,10 @@ activityRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 activityRouter.get(
     '/:id',
@@ -191,6 +196,12 @@ activityRouter.post(
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 activityRouter.put(
     '/:id',

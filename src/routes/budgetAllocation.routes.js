@@ -26,6 +26,7 @@ export const budgetAllocationRouter = Router({ mergeParams: true });
  *     BudgetAllocationInput:
  *       type: object
  *       required: [category_id, amount_cents]
+ *       additionalProperties: false
  *       properties:
  *         category_id:  { type: integer }
  *         amount_cents: { type: integer }
@@ -105,6 +106,10 @@ budgetAllocationRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 budgetAllocationRouter.get(
     '/:id',
@@ -195,6 +200,12 @@ budgetAllocationRouter.post(
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 budgetAllocationRouter.put(
     '/:id',

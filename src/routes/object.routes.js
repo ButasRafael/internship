@@ -38,6 +38,7 @@ export const objectRouter = Router({ mergeParams: true });
  *         - currency
  *         - purchase_date
  *         - expected_life_months
+ *       additionalProperties: false
  *       properties:
  *         category_id: { type: integer, nullable: true }
  *         name: { type: string }
@@ -78,12 +79,7 @@ export const objectRouter = Router({ mergeParams: true });
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-objectRouter.get(
-    '/',
-    requireAuth,
-    requirePermission('object_view'),
-    catchAsync(listObjects)
-);
+objectRouter.get('/', requireAuth, requirePermission('object_view'), catchAsync(listObjects));
 
 /**
  * @openapi
@@ -116,13 +112,11 @@ objectRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
-objectRouter.get(
-    '/:id',
-    requireAuth,
-    requirePermission('object_view'),
-    catchAsync(getObject)
-);
+objectRouter.get('/:id', requireAuth, requirePermission('object_view'), catchAsync(getObject));
 
 /**
  * @openapi
@@ -156,12 +150,7 @@ objectRouter.get(
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-objectRouter.post(
-    '/',
-    requireAuth,
-    requirePermission('object_manage'),
-    catchAsync(createObject)
-);
+objectRouter.post('/', requireAuth, requirePermission('object_manage'), catchAsync(createObject));
 
 /**
  * @openapi
@@ -198,13 +187,13 @@ objectRouter.post(
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
-objectRouter.put(
-    '/:id',
-    requireAuth,
-    requirePermission('object_manage'),
-    catchAsync(updateObject)
-);
+objectRouter.put('/:id', requireAuth, requirePermission('object_manage'), catchAsync(updateObject));
 
 /**
  * @openapi
@@ -232,9 +221,4 @@ objectRouter.put(
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
-objectRouter.delete(
-    '/:id',
-    requireAuth,
-    requirePermission('object_manage'),
-    catchAsync(deleteObject)
-);
+objectRouter.delete('/:id', requireAuth, requirePermission('object_manage'), catchAsync(deleteObject));

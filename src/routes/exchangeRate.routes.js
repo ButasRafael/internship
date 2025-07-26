@@ -25,6 +25,7 @@ export const exchangeRateRouter = Router();
  *     ExchangeRateInput:
  *       type: object
  *       required: [day, base, quote, rate]
+ *       additionalProperties: false
  *       properties:
  *         day:   { type: string, format: date }
  *         base:  { type: string, example: EUR }
@@ -105,6 +106,10 @@ exchangeRateRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 exchangeRateRouter.get(
     '/:day/:base/:quote',

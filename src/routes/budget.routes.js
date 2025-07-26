@@ -28,6 +28,7 @@ export const budgetRouter = Router({ mergeParams: true });
  *     BudgetInput:
  *       type: object
  *       required: [period_start, period_end, currency]
+ *       additionalProperties: false
  *       properties:
  *         period_start: { type: string, format: date }
  *         period_end:   { type: string, format: date }
@@ -98,6 +99,10 @@ budgetRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 budgetRouter.get(
     '/:id',
@@ -176,6 +181,12 @@ budgetRouter.post(
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 budgetRouter.put(
     '/:id',

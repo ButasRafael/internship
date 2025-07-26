@@ -27,6 +27,7 @@ export const goalContributionRouter = Router({ mergeParams: true });
  *         source_type:    { type: string, enum: [income, expense_cut, activity_saving, manual] }
  *     GoalContributionInput:
  *       type: object
+ *       additionalProperties: false
  *       properties:
  *         contributed_at: { type: string, format: date-time, nullable: true }
  *         amount_cents:   { type: integer, nullable: true }
@@ -106,6 +107,10 @@ goalContributionRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 goalContributionRouter.get(
     '/:id',
@@ -194,6 +199,10 @@ goalContributionRouter.post(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 goalContributionRouter.put(
     '/:id',

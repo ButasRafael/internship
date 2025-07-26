@@ -26,6 +26,7 @@ export const categoryRouter = Router({ mergeParams: true });
  *     CategoryInput:
  *       type: object
  *       required: [name, kind]
+ *       additionalProperties: false
  *       properties:
  *         name:     { type: string }
  *         kind:     { type: string, enum: [expense, object, activity, mixed] }
@@ -97,6 +98,10 @@ categoryRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 categoryRouter.get(
     '/:id',
@@ -179,6 +184,12 @@ categoryRouter.post(
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 categoryRouter.put(
     '/:id',

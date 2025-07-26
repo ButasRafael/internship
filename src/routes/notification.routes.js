@@ -26,6 +26,7 @@ export const notificationRouter = Router({ mergeParams: true });
  *     NotificationInput:
  *       type: object
  *       required: [channel, payload_json]
+ *       additionalProperties: false
  *       properties:
  *         sent_at:      { type: string, format: date-time }
  *         channel:      { type: string, enum: [email, telegram, webhook], default: email }
@@ -104,6 +105,10 @@ notificationRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 notificationRouter.get(
     '/:id',

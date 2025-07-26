@@ -33,6 +33,7 @@ export const expenseRouter = Router({ mergeParams: true });
  *     ExpenseInput:
  *       type: object
  *       required: [name, amount_cents, currency, frequency, start_date]
+ *       additionalProperties: false
  *       properties:
  *         category_id:  { type: integer, nullable: true }
  *         name:         { type: string,  example: Netflix }
@@ -111,6 +112,10 @@ expenseRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 expenseRouter.get(
     '/:id',
@@ -193,6 +198,12 @@ expenseRouter.post(
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 expenseRouter.put(
     '/:id',

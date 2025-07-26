@@ -31,6 +31,7 @@ export const alertRouter = Router({ mergeParams: true });
  *     AlertInput:
  *       type: object
  *       required: [name, rule_type, rule_config]
+ *       additionalProperties: false
  *       properties:
  *         name:       { type: string }
  *         rule_type:  { type: string, enum: [percent_expenses_of_income, object_breakeven_reached, budget_overrun] }
@@ -104,6 +105,10 @@ alertRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 alertRouter.get(
     '/:id',
@@ -182,6 +187,12 @@ alertRouter.post(
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 alertRouter.put(
     '/:id',

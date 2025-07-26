@@ -20,7 +20,8 @@ export const userRouter = Router();
  *       type: object
  *       properties:
  *         id:          { type: integer, example: 1 }
- *         email:       { type: string,  example: alice@example.com }
+ *         email:       { type: string,  format: email, example: alice@example.com }
+ *         role_id:     { type: integer, example: 2 }
  *         hourly_rate: { type: number,  example: 100 }
  *         currency:    { type: string,  example: RON }
  *         timezone:    { type: string,  example: Europe/Bucharest }
@@ -28,10 +29,13 @@ export const userRouter = Router();
  *     UserInput:
  *       type: object
  *       required: [email, hourly_rate, currency]
+ *       additionalProperties: false
  *       properties:
- *         email:       { type: string, example: bob@example.com }
+ *         email:       { type: string, format: email, example: bob@example.com }
+ *         role_id:     { type: integer, example: 2 }
  *         hourly_rate: { type: number, example: 80 }
  *         currency:    { type: string, example: RON }
+ *         timezone:    { type: string, example: Europe/Bucharest }
  */
 
 /**
@@ -86,6 +90,9 @@ userRouter.get('/', requireAuth, requirePermission('user_view'), catchAsync(list
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
 userRouter.get('/:id', requireAuth, requirePermission('user_view'), catchAsync(getUser));
 
@@ -151,6 +158,9 @@ userRouter.post('/', requireAuth, requirePermission('user_manage'), catchAsync(c
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
 userRouter.put('/:id', requireAuth, requirePermission('user_manage'), catchAsync(updateUser));
 

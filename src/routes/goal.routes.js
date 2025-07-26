@@ -32,6 +32,7 @@ export const goalRouter = Router({ mergeParams: true });
  *     GoalInput:
  *       type: object
  *       required: [name, currency]
+ *       additionalProperties: false
  *       properties:
  *         name:                { type: string }
  *         target_amount_cents: { type: integer, nullable: true }
@@ -108,6 +109,10 @@ goalRouter.get(
  *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 goalRouter.get(
     '/:id',
@@ -190,6 +195,12 @@ goalRouter.post(
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
+ *       404:
+ *         description: Not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 goalRouter.put(
     '/:id',
