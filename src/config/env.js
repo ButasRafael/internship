@@ -15,9 +15,6 @@ export const env = {
         pass: process.env.DB_PASSWORD ?? 'root'
     },
 
-    seedDemo: process.env.SEED_DEMO === 'true',
-    resetDb: process.env.RESET_DB === 'true',
-
     jwt: {
         accessSecret: process.env.JWT_ACCESS_SECRET || 'dev-access-secret-change-me',
         refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-change-me',

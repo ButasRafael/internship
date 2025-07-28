@@ -37,7 +37,7 @@ export const register = async (req, res, next) => {
             password_hash
         });
 
-        const accessToken = signAccessToken(user);
+        const accessToken = await signAccessToken(user);
         const refreshToken = signRefreshToken(user);
 
         setRefreshCookie(res, refreshToken);
@@ -64,7 +64,7 @@ export const login = async (req, res, next) => {
         const ok = await bcrypt.compare(password, user.password_hash);
         if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
-        const accessToken = signAccessToken(user);
+        const accessToken = await signAccessToken(user);
         const refreshToken = signRefreshToken(user);
 
         setRefreshCookie(res, refreshToken);
@@ -106,7 +106,7 @@ export const refresh = async (req, res, next) => {
         if (payload.tv !== user.token_version) {
             return res.status(401).json({ error: 'Token revoked' });
         }
-        const accessToken = signAccessToken(user);
+        const accessToken = await signAccessToken(user);
         const refreshToken = signRefreshToken(user);
         setRefreshCookie(res, refreshToken);
 

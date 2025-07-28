@@ -1,9 +1,15 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import { getUserPermissionActions } from '../models/permission.model.js';
 
-export function signAccessToken(user) {
+export async function signAccessToken(user) {
+    const perms = await getUserPermissionActions(user.id);
     return jwt.sign(
-        { sub: user.id, tv: user.token_version },
+        {
+            sub:   user.id,
+            tv:    user.token_version,
+            perms
+        },
         env.jwt.accessSecret,
         { expiresIn: env.jwt.accessTtl }
     );
