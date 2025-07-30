@@ -7,16 +7,17 @@ export class ObjectModel {
                             purchase_date, expected_life_months,
                             maintenance_cents_per_month = 0,
                             hours_saved_per_month = 0,
-                            notes = null
+                            notes = null,
+                            image_path = null
                         }) {
         const [res] = await pool.execute(
             `INSERT INTO objects
-       (user_id,category_id,name,price_cents,currency,purchase_date,expected_life_months,maintenance_cents_per_month,hours_saved_per_month,notes)
-       VALUES (?,?,?,?,?,?,?,?,?,?)`,
+       (user_id,category_id,name,price_cents,currency,purchase_date,expected_life_months,maintenance_cents_per_month,hours_saved_per_month,notes, image_path)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
             [
                 user_id, category_id, name, price_cents, currency,
                 purchase_date, expected_life_months, maintenance_cents_per_month,
-                hours_saved_per_month, notes
+                hours_saved_per_month, notes, image_path
             ]
         );
         return this.findById(res.insertId, user_id);
@@ -41,7 +42,7 @@ export class ObjectModel {
     static async update(id, user_id, data) {
         const allowed = [
             'category_id', 'name', 'price_cents', 'currency', 'purchase_date',
-            'expected_life_months', 'maintenance_cents_per_month', 'hours_saved_per_month', 'notes'
+            'expected_life_months', 'maintenance_cents_per_month', 'hours_saved_per_month', 'notes', 'image_path'
         ];
         const fields = [];
         const values = [];

@@ -19,7 +19,7 @@ export const objectRouter = Router({ mergeParams: true });
  *     ObjectItem:
  *       type: object
  *       properties:
- *         id: { type: integer }
+ *         id:   { type: integer }
  *         user_id: { type: integer }
  *         category_id: { type: integer, nullable: true }
  *         name: { type: string, example: Espressor }
@@ -30,6 +30,16 @@ export const objectRouter = Router({ mergeParams: true });
  *         maintenance_cents_per_month: { type: integer, example: 0 }
  *         hours_saved_per_month: { type: number, example: 2.5 }
  *         notes: { type: string, nullable: true }
+ *         image_path:
+ *           type: string
+ *           nullable: true
+ *           example: objects/obj‑1690728256000‑874532.jpg
+ *         image_url:
+ *           type: string
+ *           nullable: true
+ *           description: Convenience link returned by the API (read‑only)
+ *           example: /uploads/objects/obj‑1690728256000‑874532.jpg
+ *
  *     ObjectInput:
  *       type: object
  *       required:
@@ -41,15 +51,21 @@ export const objectRouter = Router({ mergeParams: true });
  *       additionalProperties: false
  *       properties:
  *         category_id: { type: integer, nullable: true }
- *         name: { type: string }
+ *         name:        { type: string }
  *         price_cents: { type: integer }
- *         currency: { type: string }
- *         purchase_date: { type: string, format: date }
- *         expected_life_months: { type: integer }
+ *         currency:    { type: string }
+ *         purchase_date:           { type: string, format: date }
+ *         expected_life_months:    { type: integer }
  *         maintenance_cents_per_month: { type: integer, default: 0 }
- *         hours_saved_per_month: { type: number, default: 0 }
+ *         hours_saved_per_month:       { type: number,  default: 0 }
  *         notes: { type: string, nullable: true }
+ *         image:
+ *           type: string
+ *           format: binary
+ *           maxLength: 2097152  # 2 MB
+ *           description: Optional JPEG / PNG / WEBP file (≤ 2 MB)
  */
+
 
 /**
  * @openapi
@@ -135,9 +151,14 @@ objectRouter.get('/:id', requireAuth, requirePermission('object_view'), catchAsy
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/ObjectInput'
+ *           encoding:
+ *             image:
+ *               contentType: image/jpeg, image/png, image/webp
+ *               style: form
+ *               explode: false
  *     responses:
  *       201:
  *         description: Created
@@ -150,6 +171,7 @@ objectRouter.get('/:id', requireAuth, requirePermission('object_view'), catchAsy
  *       403:
  *         $ref: '#/components/responses/Forbidden'
  */
+
 objectRouter.post('/', requireAuth, requirePermission('object_manage'), catchAsync(createObject));
 
 /**
@@ -173,9 +195,12 @@ objectRouter.post('/', requireAuth, requirePermission('object_manage'), catchAsy
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/ObjectInput'
+ *           encoding:
+ *             image:
+ *               contentType: image/jpeg, image/png, image/webp
  *     responses:
  *       200:
  *         description: Updated
@@ -193,6 +218,7 @@ objectRouter.post('/', requireAuth, requirePermission('object_manage'), catchAsy
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
+
 objectRouter.put('/:id', requireAuth, requirePermission('object_manage'), catchAsync(updateObject));
 
 /**
