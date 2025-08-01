@@ -8,8 +8,16 @@ services:
       - MYSQL_DATABASE=test_db
       - MYSQL_ROOT_PASSWORD=root
     ports:
-      - '3307:3306'
+      - "3307:3306"
     volumes:
       - db-data:/var/lib/mysql
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
 volumes:
   db-data:
