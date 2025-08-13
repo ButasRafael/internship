@@ -13,6 +13,9 @@ export interface ExchangeRateRow extends RowDataPacket, ExchangeRateData {}
 export class ExchangeRate {
 
     static async upsert(data: ExchangeRateData): Promise<ExchangeRateRow | null> {
+        if (!Number.isFinite(data.rate) || data.rate <= 0) {
+            throw new Error(`Invalid rate: ${data.rate}`);
+        }
         const { day, base, quote, rate } = data;
         await pool.execute(
             `INSERT INTO exchange_rates (day,base,quote,rate)

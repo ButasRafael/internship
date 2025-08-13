@@ -17,8 +17,10 @@ const TABLES_IN_DROP_ORDER = [
     'scenarios',
     'exchange_rates',
     'incomes',
+    'email_verification_tokens',
+    'password_reset_tokens',
     'users',
-    'schema_migrations'
+    'schema_migrations',
 ] as const
 
 async function resetDb(): Promise<void> {

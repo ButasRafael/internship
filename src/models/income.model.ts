@@ -37,10 +37,10 @@ export class Income {
         } = args
         const [res] = await pool.execute<ResultSetHeader>(
             `INSERT INTO incomes
-       (user_id, received_at, amount_cents, currency, source, recurring, notes)
-       VALUES (?,?,?,?,?,?,?)`,
+             (user_id, received_at, amount_cents, currency, source, recurring, notes)
+             VALUES (?, COALESCE(DATE(?), CURRENT_DATE), ?, ?, ?, ?, ?)`,
             [user_id, received_at, amount_cents, currency, source, recurring, notes],
-        )
+        );
         return this.findById(res.insertId, user_id)
     }
 
@@ -80,8 +80,13 @@ export class Income {
         const values: unknown[] = []
         for (const [k, v] of Object.entries(data) as [keyof UpdateArgs, unknown][]) {
             if (allowed.includes(k) && v !== undefined) {
-                fields.push(`${k}=?`)
-                values.push(v)
+                if (k === 'received_at') {
+                    fields.push(`received_at = DATE(?)`);
+                    values.push(v);
+                } else {
+                    fields.push(`${k} = ?`);
+                    values.push(v);
+                }
             }
         }
         if (!fields.length) return this.findById(id, user_id)

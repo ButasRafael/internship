@@ -34,7 +34,18 @@ export const updateUser = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const user = await User.update(Number(req.params.id), req.body)
+        const id = Number(req.params.id)
+        const isSelf = req.user && Number(req.user.sub) === id
+        let payload = req.body
+        if (isSelf) {
+            const allowedSelf = ['hourly_rate', 'currency', 'timezone'] as const
+            const safe: Record<string, unknown> = {}
+            for (const k of allowedSelf) {
+                if (payload[k] !== undefined) safe[k] = payload[k]
+            }
+            payload = safe
+        }
+        const user = await User.update(id, payload)
         if (!user) {
             res.status(404).json({ error: 'User not found' })
             return

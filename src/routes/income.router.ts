@@ -21,7 +21,7 @@ export const incomeRouter = Router({ mergeParams: true });
  *       properties:
  *         id:           { type: integer }
  *         user_id:      { type: integer }
- *         received_at:  { type: string, format: date-time }
+ *         received_at:  { type: string, format: date }
  *         amount_cents: { type: integer }
  *         currency:     { type: string }
  *         source:       { type: string, enum: [salary, freelance, bonus, dividend, interest, gift, other] }
@@ -32,7 +32,7 @@ export const incomeRouter = Router({ mergeParams: true });
  *       required: [received_at, amount_cents, currency]
  *       additionalProperties: false
  *       properties:
- *         received_at:  { type: string, format: date-time }
+ *         received_at:  { type: string, format: date }
  *         amount_cents: { type: integer }
  *         currency:     { type: string, default: RON }
  *         source:       { type: string, enum: [salary, freelance, bonus, dividend, interest, gift, other], default: other }

@@ -44,9 +44,9 @@ export class GoalContribution {
         const [res] = await pool.execute<ResultSetHeader>(
             `INSERT INTO goal_contributions
                  (goal_id, contributed_at, amount_cents, hours, source_type)
-             VALUES (?, COALESCE(?, CURRENT_TIMESTAMP), ?, ?, ?)`,
+             VALUES (?, COALESCE(DATE(?), CURRENT_DATE), ?, ?, ?)`,
             [goal_id, contributed_at, amount_cents, hours, source_type],
-        )
+        );
         return this.findByIdForUser(res.insertId, user_id)
     }
 
@@ -92,14 +92,20 @@ export class GoalContribution {
         const values: unknown[] = []
         for (const [k, v] of Object.entries(data) as [keyof UpdateArgs, unknown][]) {
             if (allowed.includes(k)) {
-                if (k === 'contributed_at' && (v === null || v === undefined)) {
-                    fields.push(`contributed_at = CURRENT_TIMESTAMP`)
+                if (k === 'contributed_at') {
+                    if (v === null || v === undefined) {
+                        fields.push(`contributed_at = CURRENT_DATE`);
+                    } else {
+                        fields.push(`contributed_at = DATE(?)`);
+                        values.push(v);
+                    }
                 } else {
-                    fields.push(`${k} = ?`)
-                    values.push(v)
+                    fields.push(`${k} = ?`);
+                    values.push(v);
                 }
             }
         }
+
         if (!fields.length) return this.findByIdForUser(id, user_id)
         values.push(id)
         await pool.execute(

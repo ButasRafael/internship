@@ -8,7 +8,7 @@ import {
     deleteUser,
 } from '../controllers/user.controller.js';
 import { requireAuth } from '../middlewares/auth.js';
-import { requirePermission } from '../middlewares/permission.js';
+import { requirePermission, requireSelfOrPermission } from '../middlewares/permission.js';
 
 export const userRouter = Router();
 
@@ -163,7 +163,7 @@ userRouter.post('/', requireAuth, requirePermission('user_manage'), catchAsync(c
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ErrorResponse' }
  */
-userRouter.put('/:id', requireAuth, requirePermission('user_manage'), catchAsync(updateUser));
+userRouter.put('/:id', requireAuth, requireSelfOrPermission('id', 'user_manage'), catchAsync(updateUser));
 
 /**
  * @openapi

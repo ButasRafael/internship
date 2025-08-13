@@ -21,7 +21,7 @@ export const goalContributionRouter = Router({ mergeParams: true });
  *       properties:
  *         id:             { type: integer }
  *         goal_id:        { type: integer }
- *         contributed_at: { type: string, format: date-time }
+ *         contributed_at: { type: string, format: date }
  *         amount_cents:   { type: integer, nullable: true }
  *         hours:          { type: number,  nullable: true }
  *         source_type:    { type: string, enum: [income, expense_cut, activity_saving, manual] }
@@ -29,7 +29,7 @@ export const goalContributionRouter = Router({ mergeParams: true });
  *       type: object
  *       additionalProperties: false
  *       properties:
- *         contributed_at: { type: string, format: date-time, nullable: true }
+ *         contributed_at: { type: string, format: date, nullable: true }
  *         amount_cents:   { type: integer, nullable: true }
  *         hours:          { type: number,  nullable: true }
  *         source_type:    { type: string, enum: [income, expense_cut, activity_saving, manual], default: manual }
