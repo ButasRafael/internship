@@ -6,16 +6,27 @@ VALUES
     ((SELECT id FROM users WHERE email='alice@example.com'),'Objects','object'),
     ((SELECT id FROM users WHERE email='alice@example.com'),'Activities','activity'),
     ((SELECT id FROM users WHERE email='alice@example.com'),'Food','expense'),
+    ((SELECT id FROM users WHERE email='alice@example.com'),'Utilities','expense'),
+    ((SELECT id FROM users WHERE email='alice@example.com'),'Transport','expense'),
+    ((SELECT id FROM users WHERE email='alice@example.com'),'Health','expense'),
+
     ((SELECT id FROM users WHERE email='bob@example.com'),'Housing','expense'),
     ((SELECT id FROM users WHERE email='bob@example.com'),'Subscriptions','expense'),
     ((SELECT id FROM users WHERE email='bob@example.com'),'Objects','object'),
     ((SELECT id FROM users WHERE email='bob@example.com'),'Activities','activity'),
     ((SELECT id FROM users WHERE email='bob@example.com'),'Food','expense'),
+    ((SELECT id FROM users WHERE email='bob@example.com'),'Utilities','expense'),
+    ((SELECT id FROM users WHERE email='bob@example.com'),'Transport','expense'),
+    ((SELECT id FROM users WHERE email='bob@example.com'),'Health','expense'),
+
     ((SELECT id FROM users WHERE email='carol@example.com'),'Housing','expense'),
     ((SELECT id FROM users WHERE email='carol@example.com'),'Subscriptions','expense'),
     ((SELECT id FROM users WHERE email='carol@example.com'),'Objects','object'),
     ((SELECT id FROM users WHERE email='carol@example.com'),'Activities','activity'),
-    ((SELECT id FROM users WHERE email='carol@example.com'),'Food','expense')
+    ((SELECT id FROM users WHERE email='carol@example.com'),'Food','expense'),
+    ((SELECT id FROM users WHERE email='carol@example.com'),'Utilities','expense'),
+    ((SELECT id FROM users WHERE email='carol@example.com'),'Transport','expense'),
+    ((SELECT id FROM users WHERE email='carol@example.com'),'Health','expense')
 ON DUPLICATE KEY UPDATE
     kind = VALUES(kind);
 COMMIT;

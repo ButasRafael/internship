@@ -72,7 +72,51 @@ export function AppProviders({ children }: PropsWithChildren) {
                     },
                 },
                 MuiAlert: { defaultProps: { variant: 'outlined' } },
+                MuiTooltip: {
+                    defaultProps: {
+                        arrow: true,
+                        enterDelay: 250,
+                        enterTouchDelay: 0,
+                        leaveTouchDelay: 4000,
+                    },
+                    styleOverrides: {
+                        tooltip: {
+
+                            backgroundColor: undefined,
+                            color: undefined,
+                            borderRadius: 12,
+                            padding: '10px 12px',
+                            border: '1px solid',
+                            boxShadow: '0 10px 24px rgba(0,0,0,.08)',
+                        } as any,
+                        arrow: {
+                            '&::before': {
+                                border: '1px solid',
+                            },
+                        } as any,
+                    },
+                    variants: [
+                        {
+                            props: {},
+                            style: ({ theme }) => ({
+                                backgroundColor: theme.palette.background.paper,
+                                color: theme.palette.text.primary,
+                                borderColor: theme.palette.divider,
+                            }),
+                        },
+                        {
+                            props: { arrow: true },
+                            style: ({ theme }) => ({
+                                [`& .MuiTooltip-arrow`]: {
+                                    color: theme.palette.background.paper,
+                                    '&::before': { borderColor: theme.palette.divider },
+                                },
+                            }),
+                        },
+                    ],
+                },
             },
+
         })
         return responsiveFontSizes(t)
     }, [mode])

@@ -2,62 +2,72 @@ START TRANSACTION;
 INSERT INTO expenses
 (user_id, category_id, name, amount_cents, currency, frequency, start_date, end_date, is_active, notes)
 VALUES
-    (
-        (SELECT id FROM users WHERE email='alice@example.com'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com')
-           AND name='Subscriptions'),
-        'Netflix', 5999, 'RON', 'monthly', '2025-08-01', NULL, 1, NULL
-    ),
-    (
-        (SELECT id FROM users WHERE email='alice@example.com'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com')
-           AND name='Housing'),
-        'Chirie', 220000, 'RON', 'monthly', '2025-08-01', NULL, 1, NULL
-    ),
-    (
-        (SELECT id FROM users WHERE email='alice@example.com'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com')
-           AND name='Food'),
-        'Kaufland', 12000, 'RON', 'weekly',  '2025-08-01', NULL, 1, 'Grocery'
-    ),
-    (
-        (SELECT id FROM users WHERE email='bob@example.com'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com')
-           AND name='Subscriptions'),
-        'HBO Max', 2999, 'RON', 'monthly', '2025-08-01', NULL, 1, NULL
-    ),
-    (
-        (SELECT id FROM users WHERE email='bob@example.com'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com')
-           AND name='Food'),
-        'Glovo', 8000, 'RON', 'weekly', '2025-08-01', NULL, 1, 'Food delivery'
-    ),
-    (
-        (SELECT id FROM users WHERE email='carol@example.com'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com')
-           AND name='Subscriptions'),
-        'Spotify', 2799, 'RON', 'monthly', '2025-08-01', NULL, 1, NULL
-    ),
-    (
-        (SELECT id FROM users WHERE email='carol@example.com'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com')
-           AND name='Housing'),
-        'Chirie', 180000, 'RON', 'monthly', '2025-08-01', NULL, 1, NULL
-    ),
-    (
-        (SELECT id FROM users WHERE email='carol@example.com'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com')
-           AND name='Food'),
-        'Mega', 10000, 'RON', 'weekly', '2025-08-01', NULL, 1, NULL
-    )
+
+    ((SELECT id FROM users WHERE email='alice@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Subscriptions'),
+     'Netflix', 5999, 'RON', 'monthly', '2025-08-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='alice@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Housing'),
+     'Chirie', 220000, 'RON', 'monthly', '2025-08-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='alice@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Food'),
+     'Kaufland', 12000, 'RON', 'weekly', '2025-08-01', NULL, 1, 'Grocery'),
+
+    ((SELECT id FROM users WHERE email='alice@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Food'),
+     'Lidl', 11000, 'RON', 'weekly', '2025-03-01', '2025-06-30', 1, 'Groceries (spring)'),
+    ((SELECT id FROM users WHERE email='alice@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Utilities'),
+     'Electricitate ENEL', 35000, 'RON', 'monthly', '2025-03-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='alice@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Utilities'),
+     'Apa & Canal', 12000, 'RON', 'monthly', '2025-03-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='alice@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Transport'),
+     'Abonament Metrorex', 8000, 'RON', 'monthly', '2025-03-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='alice@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Housing'),
+     'Mutare (servicii) — one-off', 300000, 'RON', 'once', '2025-05-12', NULL, 1, 'Will be amortized'),
+
+    ((SELECT id FROM users WHERE email='bob@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Subscriptions'),
+     'HBO Max', 2999, 'RON', 'monthly', '2025-08-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='bob@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Food'),
+     'Glovo', 8000, 'RON', 'weekly', '2025-08-01', NULL, 1, 'Food delivery'),
+
+    ((SELECT id FROM users WHERE email='bob@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Utilities'),
+     'ENEL', 32000, 'RON', 'monthly', '2025-03-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='bob@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Utilities'),
+     'Apa Nova', 10000, 'RON', 'monthly', '2025-03-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='bob@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Transport'),
+     'Combustibil', 15000, 'RON', 'weekly', '2025-04-01', NULL, 1, 'Fuel'),
+    ((SELECT id FROM users WHERE email='bob@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Food'),
+     'Lidl', 9000, 'RON', 'weekly', '2025-03-01', '2025-05-31', 1, NULL),
+
+    ((SELECT id FROM users WHERE email='carol@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Subscriptions'),
+     'Spotify', 2799, 'RON', 'monthly', '2025-08-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='carol@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Housing'),
+     'Chirie', 180000, 'RON', 'monthly', '2025-08-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='carol@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Food'),
+     'Mega', 10000, 'RON', 'weekly', '2025-08-01', NULL, 1, NULL),
+
+    ((SELECT id FROM users WHERE email='carol@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Utilities'),
+     'E-Distribuție', 30000, 'RON', 'monthly', '2025-03-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='carol@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Transport'),
+     'Abonament STB', 7000, 'RON', 'monthly', '2025-03-01', NULL, 1, NULL),
+    ((SELECT id FROM users WHERE email='carol@example.com'),
+     (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Food'),
+     'Lidl', 9500, 'RON', 'weekly', '2025-03-01', '2025-06-30', 1, NULL)
 ON DUPLICATE KEY UPDATE
                      category_id  = VALUES(category_id),
                      amount_cents = VALUES(amount_cents),

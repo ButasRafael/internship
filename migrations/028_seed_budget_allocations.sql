@@ -1,80 +1,111 @@
 START TRANSACTION;
-INSERT INTO budget_allocations
-(budget_id, category_id, amount_cents)
+INSERT INTO budget_allocations (budget_id, category_id, amount_cents)
 VALUES
-    (
-        (SELECT id FROM budgets
-         WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com')
-           AND period_start='2025-08-01'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com')
-           AND name='Housing'),
-        2200000
-    ),
-    (
-        (SELECT id FROM budgets
-         WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com')
-           AND period_start='2025-08-01'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com')
-           AND name='Subscriptions'),
-        100000
-    ),
-    (
-        (SELECT id FROM budgets
-         WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com')
-           AND period_start='2025-08-01'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com')
-           AND name='Food'),
-        80000
-    ),
-    (
-        (SELECT id FROM budgets
-         WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com')
-           AND period_start='2025-09-01'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com')
-           AND name='Food'),
-        150000
-    ),
-    (
-        (SELECT id FROM budgets
-         WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com')
-           AND period_start='2025-09-01'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com')
-           AND name='Subscriptions'),
-        50000
-    ),
-    (
-        (SELECT id FROM budgets
-         WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com')
-           AND period_start='2025-10-01'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com')
-           AND name='Housing'),
-        1800000
-    ),
-    (
-        (SELECT id FROM budgets
-         WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com')
-           AND period_start='2025-10-01'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com')
-           AND name='Subscriptions'),
-        80000
-    ),
-    (
-        (SELECT id FROM budgets
-         WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com')
-           AND period_start='2025-10-01'),
-        (SELECT id FROM categories
-         WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com')
-           AND name='Food'),
-        120000
-    )
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Housing'), 2200000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Subscriptions'), 120000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Food'), 100000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Utilities'), 150000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Transport'), 50000),
+
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-07-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Housing'), 2200000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-07-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Subscriptions'), 120000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-07-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Food'), 105000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-07-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Utilities'), 145000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-07-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Transport'), 60000),
+
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-08-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Housing'), 2200000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-08-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Subscriptions'), 120000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-08-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Food'), 110000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-08-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Utilities'), 160000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND period_start='2025-08-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='alice@example.com') AND name='Transport'), 60000),
+
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-05-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Food'), 140000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-05-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Subscriptions'), 50000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-05-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Utilities'), 130000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-05-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Transport'), 90000),
+
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Food'), 145000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Subscriptions'), 50000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Utilities'), 135000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Transport'), 100000),
+
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-07-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Food'), 150000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-07-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Subscriptions'), 50000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-07-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Utilities'), 135000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-07-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Transport'), 100000),
+
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-09-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Food'), 150000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND period_start='2025-09-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='bob@example.com') AND name='Subscriptions'), 50000),
+
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-04-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Housing'), 1800000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-04-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Subscriptions'), 80000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-04-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Food'), 120000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-04-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Utilities'), 140000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-04-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Transport'), 60000),
+
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-05-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Housing'), 1800000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-05-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Subscriptions'), 80000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-05-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Food'), 125000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-05-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Utilities'), 145000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-05-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Transport'), 70000),
+
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Housing'), 1800000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Subscriptions'), 80000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Food'), 125000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Utilities'), 145000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-06-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Transport'), 70000),
+
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-10-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Housing'), 1800000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-10-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Subscriptions'), 80000),
+((SELECT id FROM budgets WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND period_start='2025-10-01'),
+ (SELECT id FROM categories WHERE user_id=(SELECT id FROM users WHERE email='carol@example.com') AND name='Food'), 120000)
 ON DUPLICATE KEY UPDATE
-                     category_id = VALUES(category_id),
+                     category_id  = VALUES(category_id),
                      amount_cents = VALUES(amount_cents);
 COMMIT;
