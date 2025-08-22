@@ -212,6 +212,7 @@ export default function GenericCrudPage<T extends Record<string, any>>(
     const errs = validate(formValues);
     setFormErrors(errs);
     if (Object.keys(errs).length > 0) return;
+
     const buildPayload = (values: Partial<T>) => {
       const result: any = {};
       fields.forEach((field) => {
@@ -238,37 +239,52 @@ export default function GenericCrudPage<T extends Record<string, any>>(
 
     let payload: any = transform ? transform(formValues) : buildPayload(formValues);
 
+    const hasFileField = fields.some((f) => f.type === 'file');
     const containsFile = Object.values(payload ?? {}).some((v: any) => v instanceof File);
 
-    if (containsFile && !(payload instanceof FormData)) {
+    if (hasFileField) {
+      for (const f of fields) {
+        if (f.type === 'file' && !(f.name in payload)) {
+          (payload as any)[f.name] = null;
+        }
+      }
+    }
+
+    if ((hasFileField || containsFile) && !(payload instanceof FormData)) {
       const fd = new FormData();
       Object.entries(payload).forEach(([k, v]) => {
+        const isFileField = fields.some((f) => f.name === k && f.type === 'file');
+
         if (v === undefined) return;
-        if (v === null) {
-          fd.append(k, '');
-        } else if (v instanceof File) {
+
+        if (isFileField && (v === null || v === '')) return;
+
+        if (v instanceof File) {
           fd.append(k, v);
+        } else if (v === null) {
+          fd.append(k, '');
         } else {
           fd.append(k, String(v));
         }
       });
       payload = fd;
     }
+
     try {
       if (dialogMode === 'create') {
         await createItem(payload);
-        if (notifications) notifications.show('Item created.', { severity: 'success' });
+        notifications?.show('Item created.', { severity: 'success' });
       } else if (dialogMode === 'edit' && selectedRow) {
         await updateItem((selectedRow as any)[idField], payload);
-        if (notifications) notifications.show('Item updated.', { severity: 'success' });
+        notifications?.show('Item updated.', { severity: 'success' });
       }
       handleDialogClose();
       await loadData();
     } catch (err: any) {
-      if (notifications) notifications.show(`Save failed: ${err.message}`, { severity: 'error' });
-      else console.error(err);
+      notifications?.show(`Save failed: ${err.message}`, { severity: 'error' });
     }
   };
+
 
   const cols = React.useMemo<GridColDef[]>(() => {
     const hasCustom = Boolean(props.rowActions);

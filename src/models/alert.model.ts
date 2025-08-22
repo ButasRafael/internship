@@ -23,7 +23,7 @@ export interface AlertRow extends RowDataPacket {
     user_id: number;
     name: string;
     rule_type: AlertRule;
-    rule_config: string;
+    rule_config: unknown;
     is_active: 0 | 1;
     created_at: string;
 }

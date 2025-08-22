@@ -20,6 +20,7 @@ import BudgetAllocationsPage from "@/pages/budgets/BudgetAllocationsPage.tsx";
 import GoalContributionsPage from "@/pages/goals/GoalContributionsPage.tsx";
 import ExchangeRatesAdminPage from "@/pages/admin/ExchangeRateAdminPage.tsx";
 import UsersAdminPage from "@/pages/admin/UsersAdminPage.tsx";
+import NotificationsPage from '@/pages/notifications/NotificationPage';
 
 export const router = createBrowserRouter([
     { element: <AuthLayout />, children: [
@@ -44,6 +45,7 @@ export const router = createBrowserRouter([
                     { path: 'goals/:goalId/contributions', element: <GoalContributionsPage /> },
                     { path: 'admin/users', element: <UsersAdminPage /> },
                     { path: 'admin/exchange-rates', element: <ExchangeRatesAdminPage /> },
+                    { path: 'notifications', element: <NotificationsPage /> },
 
 
                 ]},

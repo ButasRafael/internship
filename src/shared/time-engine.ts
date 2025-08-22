@@ -437,7 +437,7 @@ export async function computeActivities(
     const byCatSaved: Record<number, MonthlySeries> = {}
     const byCatExtra: Record<number, MonthlySeries> = {}
     const byCatNet:   Record<number, MonthlySeries> = {}
-    
+
     const onceMonth: MonthKey = toMonthKey(new Date())
 
     for (const a of rows) {

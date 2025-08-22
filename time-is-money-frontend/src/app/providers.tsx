@@ -5,7 +5,7 @@ import { apiFetch } from '@/lib/api'
 import { useAuth } from '@/store/auth.store'
 import { NotificationsProvider } from '@/components/NotificationsContext'
 import { DialogsProvider } from '@/components/DialogsContext'
-
+import { WsProvider } from '@/lib/ws';
 type Mode = 'light' | 'dark'
 type ColorModeCtx = { mode: Mode; toggle: () => void; setMode: (m: Mode) => void }
 const ColorModeContext = createContext<ColorModeCtx>({ mode: 'light', toggle: () => {}, setMode: () => {} })
@@ -145,7 +145,9 @@ export function AppProviders({ children }: PropsWithChildren) {
                     }}
                 >
                     <NotificationsProvider>
-                        <DialogsProvider>{children}</DialogsProvider>
+                        <DialogsProvider>
+                        <WsProvider>{children}</WsProvider>
+                        </DialogsProvider>
                     </NotificationsProvider>
                 </SWRConfig>
             </ThemeProvider>

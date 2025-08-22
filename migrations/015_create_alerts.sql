@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS alerts (
                                       is_active TINYINT(1) NOT NULL DEFAULT 1,
                                       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                       CONSTRAINT fk_alert_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                                      INDEX idx_alert_user (user_id)
-);
+                                      INDEX idx_alert_user (user_id),
+                                      UNIQUE KEY uq_alert_user_name (user_id, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 COMMIT;

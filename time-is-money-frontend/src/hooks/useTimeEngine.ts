@@ -34,6 +34,7 @@ type ApiPayload<T> = T | { data: T }
 
 const get = async <T,>(url: string): Promise<T> => {
     const res = await apiFetch<ApiPayload<T>>(url)
+    //@ts-ignore
     return (res && 'data' in res) ? (res as any).data : (res as T)
 }
 

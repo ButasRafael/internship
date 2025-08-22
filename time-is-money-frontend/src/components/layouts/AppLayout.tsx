@@ -29,6 +29,7 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import { useColorMode } from '@/app/providers';
+import NotificationBell from '@/components/NotificationBell';
 
 function NavButton({ to, end, children }: { to: string; end?: boolean; children: ReactNode }) {
     const resolved = useResolvedPath(to);
@@ -137,6 +138,8 @@ export default function AppLayout() {
                                     {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
                                 </IconButton>
                             </Tooltip>
+
+                            <NotificationBell />
 
                             <Typography sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}>
                                 {user?.email}

@@ -810,7 +810,6 @@ export default function ImprovedDashboardPage() {
                                                 ...(controlSeries as any),
                                                 ...(anomalySeries as any),
                                             ]}
-                                            slotProps={{ legend: { hidden: ['Warn +','Warn −','Alert +','Alert −'] } }}
                                             height={CHART_H}
                                             margin={{ top: 20, right: 20, bottom: 30, left: 40 }}
                                             grid={{ vertical: true, horizontal: true }}

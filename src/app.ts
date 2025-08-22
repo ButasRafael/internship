@@ -10,6 +10,7 @@ import { openapiValidator }  from './middlewares/validator.js'
 import { mountRoutes }       from './routes/index.js'
 import { env }               from './config/env.js'
 import { swaggerSpec } from './config/swagger.js';
+import { devRouter } from './routes/dev.js'
 
 export function createApp () {
     const app = express()
@@ -30,6 +31,8 @@ export function createApp () {
 
     app.use(verifyAccessToken)
     app.use(openapiValidator)
+
+    app.use('/api', devRouter);
 
     app.get('/api/health', (_req, res) => res.json({ ok: true, ts: Date.now() }))
 
