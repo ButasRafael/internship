@@ -21,6 +21,7 @@ const TABLES_IN_DROP_ORDER = [
     'password_reset_tokens',
     'users',
     'schema_migrations',
+    'user_hourly_rates'
 ] as const
 
 async function resetDb(): Promise<void> {

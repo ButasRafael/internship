@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import GenericCrudPage from '@/components/GenericCrudPage';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/store/auth.store';
@@ -6,6 +6,7 @@ import { useAuth } from '@/store/auth.store';
 import { Stack, Typography } from '@mui/material';
 import { fx } from '@/lib/fx';
 import { currentMonthKey, expenseHoursThisMonth, fmtH } from '@/lib/insights';
+import { TextField } from '@mui/material';
 
 const CURRENCIES = ['RON', 'EUR', 'USD', 'GBP', 'CHF'] as const;
 
@@ -27,6 +28,19 @@ type ExpenseRowUI = ExpenseRow & {
 
 export default function ExpenseCrudPage() {
     const user = useAuth((s) => s.user)!;
+    const [effectiveRate, setEffectiveRate] = useState<number | null | undefined>(undefined);
+    const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthKey());
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const rates = await apiFetch<{ month: string; hourly_rate: number | null }[]>(`/api/users/${user.id}/hourly-rates?from=${selectedMonth}&to=${selectedMonth}`);
+                setEffectiveRate(rates?.[0]?.hourly_rate ?? (user.hourly_rate ?? null));
+            } catch {
+                setEffectiveRate(user.hourly_rate ?? null);
+            }
+        })();
+    }, [user.id, user.hourly_rate, selectedMonth]);
 
     const ctx = useMemo(
         () => ({
@@ -41,22 +55,32 @@ export default function ExpenseCrudPage() {
     return (
         <>
             <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                <TextField
+                    type="month"
+                    label="Month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    size="small"
+                    sx={{ width: 200 }}
+                />
                 <Typography variant="caption" color="text.secondary">
-                    {ctx.hourlyRate
-                        ? `Rate: ${ctx.hourlyRate}/h · ${ctx.userCurrency}`
+                    {effectiveRate
+                        ? `Effective rate for ${selectedMonth}: ${effectiveRate}/h · ${ctx.userCurrency}`
                         : 'Set hourly rate to value expenses in hours'}
                 </Typography>
             </Stack>
 
             <GenericCrudPage<ExpenseRowUI>
-                key={`${user.hourly_rate ?? 'NA'}-${user.currency}-${currentMonthKey()}`}
+                key={`${user.hourly_rate ?? 'NA'}-${user.currency}-${selectedMonth}`}
                 title="Expenses"
                 fetchList={async () => {
                     const rows = await apiFetch<ExpenseRow[]>(`/api/users/${user.id}/expenses`);
-                    const month = currentMonthKey();
+                    const rates = await apiFetch<{ month: string; hourly_rate: number | null }[]>(`/api/users/${user.id}/hourly-rates?from=${selectedMonth}&to=${selectedMonth}`);
+                    const eff = rates?.[0]?.hourly_rate ?? (user.hourly_rate ?? null);
+                    const ctx2 = { ...ctx, hourlyRateFor: () => eff } as typeof ctx & { hourlyRateFor: (mk: string) => number | null };
                     return await Promise.all(
                         rows.map(async (r) => {
-                            const hoursThisMonth = await expenseHoursThisMonth(r, month, ctx);
+                            const hoursThisMonth = await expenseHoursThisMonth(r, selectedMonth, ctx2);
                             return {
                                 ...r,
                                 amount_cents: r.amount_cents == null ? 0 : r.amount_cents / 100,

@@ -7,6 +7,8 @@ export type IncomeRecurring = 'none' | Frequency
 export interface EngineContext {
     userCurrency: string
     hourlyRate: number | null
+    /** Optional per-month hourly rate resolver (YYYY-MM). Overrides hourlyRate when present. */
+    hourlyRateFor?: (mk: MonthKey) => number | null
     fx: (from: string, to: string, date: Date) => Promise<number>
     amortizeOneTimeMonths?: number | null
     amortizeCapexMonths?: number | null
@@ -81,6 +83,12 @@ export function moneyToHours(amountUserCurrency: number, ctx: EngineContext): nu
     return amountUserCurrency / ctx.hourlyRate
 }
 
+export function moneyToHoursForMonth(amountUserCurrency: number, mk: MonthKey, ctx: EngineContext): number | null {
+    const r = ctx.hourlyRateFor ? ctx.hourlyRateFor(mk) : ctx.hourlyRate
+    if (!r || r <= 0) return null
+    return amountUserCurrency / r
+}
+
 function ensureCatSeries(
     map: Record<number, MonthlySeries>,
     categoryId: number,
@@ -124,7 +132,7 @@ export async function computeIncomeByMonth(
             if (!(mk in money)) continue
             const amtUser = await moneyToUser(r.amount_cents, r.currency, dayjs(r.received_at).toDate(), ctx)
             money[mk] += amtUser
-            if (hours) hours[mk] += moneyToHours(amtUser, ctx) ?? 0
+            if (hours) hours[mk] += moneyToHoursForMonth(amtUser, mk, ctx) ?? 0
             bySource[r.source] ||= {}; bySource[r.source][mk] = (bySource[r.source][mk] || 0) + amtUser
         } else {
             const k = freqToMonthly(rec as Frequency)
@@ -132,7 +140,7 @@ export async function computeIncomeByMonth(
                 const amtUser = await moneyToUser(r.amount_cents, r.currency, monthStart(mk).toDate(), ctx)
                 const m = amtUser * k
                 money[mk] += m
-                if (hours) hours[mk] += moneyToHours(m, ctx) ?? 0
+                if (hours) hours[mk] += moneyToHoursForMonth(m, mk, ctx) ?? 0
                 bySource[r.source] ||= {}; bySource[r.source][mk] = (bySource[r.source][mk] || 0) + m
             }
         }
@@ -195,27 +203,27 @@ export async function computeExpensesByMonth(
                     if (!(mk in money)) continue
                     const portion = amtUser / amortN
                     money[mk] += portion
-                    if (hours) hours[mk] += moneyToHours(portion, ctx) ?? 0
+                    if (hours) hours[mk] += moneyToHoursForMonth(portion, mk, ctx) ?? 0
 
                     if (catId != null) {
                         const cm = ensureCatSeries(byCatMoney, catId, months)
                         cm[mk] += portion
                         if (byCatHours) {
                             const ch = ensureCatSeries(byCatHours, catId, months)
-                            ch[mk] += moneyToHours(portion, ctx) ?? 0
+                            ch[mk] += moneyToHoursForMonth(portion, mk, ctx) ?? 0
                         }
                     }
                 }
             } else if (startMk in money) {
                 money[startMk] += amtUser
-                if (hours) hours[startMk] += moneyToHours(amtUser, ctx) ?? 0
+                if (hours) hours[startMk] += moneyToHoursForMonth(amtUser, startMk, ctx) ?? 0
 
                 if (catId != null) {
                     const cm = ensureCatSeries(byCatMoney, catId, months)
                     cm[startMk] += amtUser
                     if (byCatHours) {
                         const ch = ensureCatSeries(byCatHours, catId, months)
-                        ch[startMk] += moneyToHours(amtUser, ctx) ?? 0
+                        ch[startMk] += moneyToHoursForMonth(amtUser, startMk, ctx) ?? 0
                     }
                 }
             }
@@ -230,14 +238,14 @@ export async function computeExpensesByMonth(
                 const amtUser = await moneyToUser(r.amount_cents, r.currency, monthStart(mk).toDate(), ctx)
                 const m = amtUser * k
                 money[mk] += m
-                if (hours) hours[mk] += moneyToHours(m, ctx) ?? 0
+                if (hours) hours[mk] += moneyToHoursForMonth(m, mk, ctx) ?? 0
 
                 if (catId != null) {
                     const cm = ensureCatSeries(byCatMoney, catId, months)
                     cm[mk] += m
                     if (byCatHours) {
                         const ch = ensureCatSeries(byCatHours, catId, months)
-                        ch[mk] += moneyToHours(m, ctx) ?? 0
+                        ch[mk] += moneyToHoursForMonth(m, mk, ctx) ?? 0
                     }
                 }
             }
@@ -364,7 +372,7 @@ export async function computeObjects(
                 mkStart.toDate(),
                 ctx
             );
-            const maintHThisMonth = moneyToHours(maintUserThisMonth, ctx) ?? 0;
+            const maintHThisMonth = moneyToHoursForMonth(maintUserThisMonth, mk, ctx) ?? 0;
 
             if (maintHours) {
                 maintHours[mk] += maintHThisMonth;
@@ -379,15 +387,18 @@ export async function computeObjects(
             }
         }
 
-        if (capexAmort && capexHours != null && capexN > 0) {
+        if (capexAmort && capexN > 0) {
             const startMk = toMonthKey(o.purchase_date);
+            // amortize monetary value equally, then convert to hours per month using that month's rate
+            const totalUserMoney = capexUser;
             for (let i = 0; i < capexN; i++) {
                 const mk = dayjs(startMk + '-01').add(i, 'month').format('YYYY-MM');
                 if (!(mk in capexAmort)) continue;
-                const portion = capexHours / capexN;
-                capexAmort[mk] += portion;
+                const portionMoney = totalUserMoney / capexN;
+                const portionHours = moneyToHoursForMonth(portionMoney, mk, ctx) ?? 0;
+                capexAmort[mk] += portionHours;
                 if (catId != null && byCatCapex) {
-                    ensureCatSeries(byCatCapex, catId, months)[mk] += portion;
+                    ensureCatSeries(byCatCapex, catId, months)[mk] += portionHours;
                 }
             }
         }
@@ -457,7 +468,7 @@ export async function computeActivities(
             if (months.includes(onceMonth)) {
                 const mkStart = monthStart(onceMonth).toDate()
                 const moneyCostUserOcc  = await moneyToUser(a.direct_cost_cents || 0, a.currency, mkStart, ctx)
-                const moneyCostHoursOcc = moneyToHours(moneyCostUserOcc, ctx)
+                const moneyCostHoursOcc = moneyToHoursForMonth(moneyCostUserOcc, onceMonth, ctx)
                 const totalCostOcc      = moneyCostHoursOcc != null ? timeCostOcc + moneyCostHoursOcc : null
 
                 const monthlySaved = Math.max(0, benefitOcc)
@@ -482,7 +493,7 @@ export async function computeActivities(
             const mkStart = monthStart(mk).toDate()
 
             const moneyCostUserOccThisMonth  = await moneyToUser(a.direct_cost_cents || 0, a.currency, mkStart, ctx)
-            const moneyCostHoursOccThisMonth = moneyToHours(moneyCostUserOccThisMonth, ctx)
+            const moneyCostHoursOccThisMonth = moneyToHoursForMonth(moneyCostUserOccThisMonth, mk, ctx)
             const totalCostOccThisMonth      = moneyCostHoursOccThisMonth != null ? timeCostOcc + moneyCostHoursOccThisMonth : null
 
             if (totalCostOccThisMonth == null) {
@@ -590,7 +601,7 @@ export async function computeBudgetsInTime(
             cm[mk] += portionUserMoney;
 
             if (hoursByMonth) {
-                const h = moneyToHours(portionUserMoney, ctx) ?? 0;
+                const h = moneyToHoursForMonth(portionUserMoney, mk, ctx) ?? 0;
                 hoursByMonth[mk] += h;
                 if (byCategoryHours) {
                     const ch = ensureCatSeries(byCategoryHours, alloc.category_id, months);

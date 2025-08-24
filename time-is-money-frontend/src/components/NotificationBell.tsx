@@ -33,7 +33,7 @@ export default function NotificationBell() {
     const latest: NotificationRow[] = notifications.slice(0, 8);
 
     // unread badge
-    const { count, mutateCount } = useUnreadCount(userId);
+    const { count, mutate: mutateCount } = useUnreadCount(userId);
 
     const nav = useNavigate();
 
@@ -49,7 +49,7 @@ export default function NotificationBell() {
             // optimistic: zero the badge and mark local list as read
             mutateCount({ count: 0 }, false);
             mutateList(
-                (prev) =>
+                (prev: NotificationRow[] | undefined) =>
                     (prev ?? []).map((n) =>
                         n.read_at ? n : { ...n, read_at: new Date().toISOString() }
                     ),
@@ -67,14 +67,14 @@ export default function NotificationBell() {
             try {
                 await markRead(userId, n.id);
                 mutateList(
-                    (prev) =>
+                    (prev: NotificationRow[] | undefined) =>
                         (prev ?? []).map((row) =>
                             row.id === n.id ? { ...row, read_at: new Date().toISOString() } : row
                         ),
                     false
                 );
                 mutateCount(
-                    (prev) => ({ count: Math.max(0, (prev?.count ?? 1) - 1) }),
+                    (prev: { count: number } | undefined) => ({ count: Math.max(0, (prev?.count ?? 1) - 1) }),
                     false
                 );
             } catch {

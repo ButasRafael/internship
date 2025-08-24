@@ -6,6 +6,8 @@ import {
     createScenario,
     updateScenario,
     deleteScenario,
+    evaluateScenario,
+    previewScenario,
 } from '../controllers/scenario.controller.js';
 import { requireAuth } from '../middlewares/auth.js';
 import { requirePermission } from '../middlewares/permission.js';
@@ -198,3 +200,63 @@ scenarioRouter.put('/:id', requireAuth, requirePermission('scenario_manage'), ca
  *         $ref: '#/components/responses/Forbidden'
  */
 scenarioRouter.delete('/:id', requireAuth, requirePermission('scenario_manage'), catchAsync(deleteScenario));
+
+/**
+ * @openapi
+ * /api/users/{userId}/scenarios/{id}/evaluate:
+ *   post:
+ *     summary: Evaluate a scenario and return analytics
+ *     description: Requires `scenario_view` permission.
+ *     tags: [Scenarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema: { type: integer }
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: from
+ *         schema: { type: string, example: 2025-01 }
+ *       - in: query
+ *         name: to
+ *         schema: { type: string, example: 2025-12 }
+ *     responses:
+ *       200:
+ *         description: Scenario evaluation result
+ */
+scenarioRouter.post('/:id/evaluate', requireAuth, requirePermission('scenario_view'), catchAsync(evaluateScenario));
+
+/**
+ * @openapi
+ * /api/users/{userId}/scenarios/preview:
+ *   post:
+ *     summary: Ad-hoc scenario evaluation without saving
+ *     description: Requires `scenario_view` permission.
+ *     tags: [Scenarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               params_json: { type: object }
+ *               from: { type: string, example: 2025-01 }
+ *               to:   { type: string, example: 2025-12 }
+ *     responses:
+ *       200:
+ *         description: Scenario evaluation result
+ */
+scenarioRouter.post('/preview', requireAuth, requirePermission('scenario_view'), catchAsync(previewScenario));

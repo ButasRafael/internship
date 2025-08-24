@@ -71,6 +71,7 @@ export function useTimeEngine({ userId, startMonth, endMonth, settings }: UseTim
                 activities,
                 budgets,
                 goals,
+                rates,
             ] = await Promise.all([
                 get<IncomeRow[]>(U('/incomes')),
                 get<ExpenseRow[]>(U('/expenses')),
@@ -78,6 +79,9 @@ export function useTimeEngine({ userId, startMonth, endMonth, settings }: UseTim
                 get<ActivityRow[]>(U('/activities')),
                 get<BackendBudget[]>(U('/budgets')),
                 get<GoalRow[]>(U('/goals')),
+                get<{ month: string; hourly_rate: number | null }[]>(
+                    U(`/hourly-rates?from=${startMonth}&to=${endMonth}`)
+                ),
             ])
 
             const budgetAllocations: BudgetAllocationRow[] = (await Promise.all(
@@ -100,9 +104,13 @@ export function useTimeEngine({ userId, startMonth, endMonth, settings }: UseTim
                 })
             )).flat()
 
+            const hrMap: Record<string, number | null> = Object.create(null)
+            for (const r of rates ?? []) hrMap[r.month] = r.hourly_rate != null ? Number(r.hourly_rate) : null
+
             const ctx: EngineContext = {
                 userCurrency: settings.userCurrency,
                 hourlyRate: settings.hourlyRate,
+                hourlyRateFor: (mk) => (mk in hrMap ? hrMap[mk] : (settings.hourlyRate ?? null)),
                 fx: (from: string, to: string, date: Date) => fxApi(from, to, date),
                 amortizeOneTimeMonths: settings.amortizeOneTimeMonths ?? null,
                 amortizeCapexMonths: settings.amortizeCapexMonths ?? null,

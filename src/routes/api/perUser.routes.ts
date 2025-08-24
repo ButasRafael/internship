@@ -13,6 +13,7 @@ import { notificationRouter }       from '../notification.routes.js'
 import { scenarioRouter }           from '../scenario.routes.js'
 import { incomeRouter }             from '../income.router.js'
 import { userNotificationsRouter } from '../userNotifications.routes.js';
+import { userHourlyRateRouter } from '../userHourlyRate.routes.js';
 
 export const perUserRouter = Router({ mergeParams: true })
 
@@ -29,3 +30,4 @@ perUserRouter.use('/alerts/:alertId/notifications', notificationRouter)
 perUserRouter.use('/scenarios',                    scenarioRouter)
 perUserRouter.use('/incomes',                      incomeRouter)
 perUserRouter.use('/notifications', userNotificationsRouter)
+perUserRouter.use('/hourly-rates', userHourlyRateRouter)

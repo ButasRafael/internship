@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react'
+import {useMemo, useState, useRef, useEffect} from 'react'
 import dayjs from 'dayjs'
 import {Alert, Box, Chip, Divider, Grid, LinearProgress, Paper, Stack, Typography, useTheme,} from '@mui/material'
 import {LineChart} from '@mui/x-charts/LineChart'
@@ -8,6 +8,7 @@ import {useAuth} from '@/store/auth.store'
 import {useTimeEngine} from '@/hooks/useTimeEngine'
 import { Tooltip } from '@mui/material'
 import InfoOutlined from '@mui/icons-material/InfoOutlined'
+import { AnimatedCard, AnimatedChart } from '@/components/ui/AnimatedComponents'
 import * as React from "react";
 
 function lastNMonths(n: number) {
@@ -22,6 +23,22 @@ function fmtHours(h: number | null | undefined) {
 }
 
 const EPS = 1e-6
+
+// helper: measure a box's pixel height with ResizeObserver
+function useMeasuredHeight(min = 220) {
+    const ref = useRef<HTMLDivElement | null>(null);
+    const [h, setH] = useState(min);
+    useEffect(() => {
+        if (!ref.current) return;
+        const ro = new ResizeObserver((entries) => {
+            const r = entries[0]?.contentRect;
+            if (r) setH(Math.max(min, Math.floor(r.height)));
+        });
+        ro.observe(ref.current);
+        return () => ro.disconnect();
+    }, [min]);
+    return { ref, height: h };
+}
 
 const TILE_SX = {
     p: 3,
@@ -730,7 +747,7 @@ export default function ImprovedDashboardPage() {
                                     what="Net time burn = time costs − time savings (hours). Lower or negative is better."
                                     how="Computed as timeBurnNet[m] = (expense + maintenance + activity extra + capex amort.) − (objects saved + activities saved) for the current month."
                                 >
-                                    <Paper sx={TILE_SX}>
+                                    <AnimatedCard loading={isLoading} sx={{...TILE_SX, minHeight: 160}} variant="fade" delay={0.1}>
                                         <Typography variant="subtitle2" color="text.secondary">This month — Net time burn</Typography>
                                         <Typography variant="h5" fontWeight={700}>{fmtHours(topTiles.net)}</Typography>
                                         <Typography variant="caption" color="text.secondary">{dayjs(currentMonth + '-01').format('MMMM YYYY')}</Typography>
@@ -739,7 +756,7 @@ export default function ImprovedDashboardPage() {
                                                 {topTiles.mom > 0 ? '▲' : '▼'} MoM {fmtHours(Math.abs(topTiles.mom))}
                                             </Typography>
                                         )}
-                                    </Paper>
+                                    </AnimatedCard>
                                 </Explain>
                             </Grid>
 
@@ -749,10 +766,10 @@ export default function ImprovedDashboardPage() {
                                     what="Total hours spent on cost drivers this month."
                                     how="Costs = expenseHours + objectsMaintHours + activitiesExtraCostHours + objectsCapexHours (hours)."
                                 >
-                                    <Paper sx={TILE_SX}>
+                                    <AnimatedCard loading={isLoading} sx={{...TILE_SX, minHeight: 160}} variant="fade" delay={0.2}>
                                         <Typography variant="subtitle2" color="text.secondary">This month — Time costs</Typography>
                                         <Typography variant="h5" fontWeight={700}>{fmtHours(topTiles.cost)}</Typography>
-                                    </Paper>
+                                    </AnimatedCard>
                                 </Explain>
                             </Grid>
 
@@ -763,10 +780,10 @@ export default function ImprovedDashboardPage() {
                                     what="Total hours saved this month from objects and activities."
                                     how="Savings = objectsSavedHours + activitiesSavedHours (hours)."
                                 >
-                                    <Paper sx={TILE_SX}>
+                                    <AnimatedCard loading={isLoading} sx={{...TILE_SX, minHeight: 160}} variant="fade" delay={0.3}>
                                         <Typography variant="subtitle2" color="text.secondary">This month — Time savings</Typography>
                                         <Typography variant="h5" fontWeight={700}>{fmtHours(topTiles.savings)}</Typography>
-                                    </Paper>
+                                    </AnimatedCard>
                                 </Explain>
                             </Grid>
 
@@ -777,7 +794,7 @@ export default function ImprovedDashboardPage() {
                                     what="Average monthly net time burn across the selected months. ≤ 0 means you’re net saving time on average."
                                     how="Avg = Σ timeBurnNet[m] ÷ number of months, where timeBurnNet = Costs − Savings. ‘Good months’ = share of months with net ≤ 0; ‘Streak’ = consecutive good months ending now."
                                 >
-                                    <Paper sx={TILE_SX}>
+                                    <Paper sx={{...TILE_SX, minHeight: 160}}>
                                         <Typography variant="subtitle2" color="text.secondary">Avg net per month (period)</Typography>
                                         <Typography variant="h5" fontWeight={700}>{fmtHours(agg?.netSavingsHoursPerMonth ?? 0)}</Typography>
                                         <Typography variant="caption" color="text.secondary">
@@ -794,42 +811,68 @@ export default function ImprovedDashboardPage() {
 
 
                         <Grid container spacing={2} columns={12} alignItems="stretch">
-                            <Grid size={{ xs: 12, md: 8 }}>
+                            <Grid size={{ xs: 12, md: 8 }} sx={{ display: 'flex' }}>
                                 <Explain
                                     title="Costs vs Savings vs Net"
                                     what="Monthly totals in hours. Net = Costs − Savings. The 3-month line smooths noise; bands mark statistical thresholds; dots mark anomalies."
-                                    how="Costs = expense + maintenance + activity extra + capex amort. Savings = objects + activities saved. ‘Net (3-mo avg)’ = simple moving average. Warn/Alert bands = mean ± (1.5σ / 2σ). Anomaly if |value − mean| exceeds the band."
+                                    how="Costs = expense + maintenance + activity extra + capex amort. Savings = objects + activities saved. 'Net (3-mo avg)' = simple moving average. Warn/Alert bands = mean ± (1.5σ / 2σ). Anomaly if |value − mean| exceeds the band."
                                 >
-                                    <Paper sx={CHART_CARD_SX}>
-                                        <Typography variant="subtitle1" gutterBottom>Costs vs Savings vs Net</Typography>
-                                        <LineChart
-                                            xAxis={[xMonths]}
-                                            series={[
-                                                ...(trendSeries as any),
-                                                { label: 'Net (3-mo avg)', data: roll3Net },
-                                                ...(controlSeries as any),
-                                                ...(anomalySeries as any),
-                                            ]}
-                                            height={CHART_H}
-                                            margin={{ top: 20, right: 20, bottom: 30, left: 40 }}
-                                            grid={{ vertical: true, horizontal: true }}
-                                        />
-                                        {control?.anomalies?.length ? (
-                                            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
-                                                {control.anomalies.map((a) => (
-                                                    <Chip
-                                                        key={a.month + a.level}
-                                                        size="small"
-                                                        variant="outlined"
-                                                        color={a.level === 'alert' ? 'error' : 'warning'}
-                                                        label={`${dayjs(a.month + '-01').format('MMM YY')}: ${fmtHours(a.v)} ${a.level}`}
+                                    {(() => {
+                                        const { ref: chartAreaRef, height: chartH } = useMeasuredHeight(260);
+                                        return (
+                                            <AnimatedCard
+                                                loading={isLoading}
+                                                variant="lift"
+                                                delay={0.1}
+                                                sx={{
+                                                    ...CHART_CARD_SX,
+                                                    // FILL THE COLUMN HEIGHT
+                                                    height: '100%',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                }}
+                                            >
+                                                <Typography variant="subtitle1" gutterBottom>
+                                                    Costs vs Savings vs Net
+                                                </Typography>
+
+                                                {/* CHART AREA: flex:1 so it expands to fill available vertical space */}
+                                                <Box ref={chartAreaRef} sx={{ flex: 1, minHeight: 240 }}>
+                                                    <LineChart
+                                                        xAxis={[xMonths]}
+                                                        series={[
+                                                            ...(trendSeries as any),
+                                                            { label: 'Net (3-mo avg)', data: roll3Net },
+                                                            ...(controlSeries as any),
+                                                            ...(anomalySeries as any),
+                                                        ]}
+                                                        height={chartH}            // <- measured height here
+                                                        margin={{ top: 20, right: 20, bottom: 30, left: 40 }}
+                                                        grid={{ vertical: true, horizontal: true }}
                                                     />
-                                                ))}
-                                            </Stack>
-                                        ) : (
-                                            <Typography variant="caption" color="text.secondary">No anomalies in this window.</Typography>
-                                        )}
-                                    </Paper>
+                                                </Box>
+
+                                                {/* Chips stay below and don't affect the chart height calculation */}
+                                                {control?.anomalies?.length ? (
+                                                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
+                                                        {control.anomalies.map((a) => (
+                                                            <Chip
+                                                                key={a.month + a.level}
+                                                                size="small"
+                                                                variant="outlined"
+                                                                color={a.level === 'alert' ? 'error' : 'warning'}
+                                                                label={`${dayjs(a.month + '-01').format('MMM YY')}: ${fmtHours(a.v)} ${a.level}`}
+                                                            />
+                                                        ))}
+                                                    </Stack>
+                                                ) : (
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        No anomalies in this window.
+                                                    </Typography>
+                                                )}
+                                            </AnimatedCard>
+                                        );
+                                    })()}
                                 </Explain>
                             </Grid>
 
@@ -840,7 +883,7 @@ export default function ImprovedDashboardPage() {
                                         what="Target improvement needed next month to reach ≤ 0 net time burn."
                                         how="We estimate next month’s net as: forecast[+1] if available; otherwise 3-month rolling average; otherwise last month. Required hours = max(0, nextNet). If an hourly rate is set, we also show the money equivalent (required × rate)."
                                     >
-                                        <Paper sx={{ ...TILE_SX, flex: 1 }}>
+                                        <Paper sx={{ ...TILE_SX, flex: 1, minHeight: 180 }}>
                                             <Typography variant="subtitle1" gutterBottom>Required change next month</Typography>
                                             {reqNext ? (
                                                 <Stack spacing={0.5}>
@@ -871,7 +914,7 @@ export default function ImprovedDashboardPage() {
                                         what="How long until breakeven or how far ahead you are, using the recent trend."
                                         how="Compute the 3-month average of net (recentAvg). If recentAvg ≈ 0 → 'No trend'. If cumulative net > 0 and recentAvg < 0 → 'Breakeven in' = cumulative / -recentAvg months. If cumulative ≤ 0 and recentAvg < 0 → 'Ahead by' = |cumulative| / -recentAvg months. Otherwise 'Moving away' with average monthly change = recentAvg."
                                     >
-                                        <Paper sx={{ ...TILE_SX, flex: 1 }}>
+                                        <Paper sx={{ ...TILE_SX, flex: 1, minHeight: 180 }}>
                                             <Typography variant="subtitle1" gutterBottom>Breakeven & runway</Typography>
                                             {!runway ? (
                                                 <Typography color="text.secondary">Not enough data.</Typography>
@@ -896,7 +939,7 @@ export default function ImprovedDashboardPage() {
                                         what="Month-over-month change in net and its drivers."
                                         how="For each component, Δ = current − previous: expenses, maintenance, activity extra, capex amortization, objects saved (negated), activities saved (negated). Net Δ is the sum of components."
                                     >
-                                        <Paper sx={{ ...TILE_SX, flex: 1 }}>
+                                        <Paper sx={{ ...TILE_SX, flex: 1, minHeight: 180 }}>
                                             <Typography variant="subtitle1" gutterBottom>What changed vs last month</Typography>
                                             {!prevMonth || !deltaByComponent ? (
                                                 <Typography color="text.secondary">Need at least 2 months of data.</Typography>
@@ -936,23 +979,25 @@ export default function ImprovedDashboardPage() {
                                     what="One-month components that build up the net time burn."
                                     how="Net = +expenses +maintenance +activity extra +capex amortization −objects saved −activities saved for the selected month."
                                 >
-                                    <Paper sx={CHART_CARD_SX}>
+                                    <AnimatedCard loading={isLoading} sx={CHART_CARD_SX} variant="lift" delay={0.3}>
                                         <Typography variant="subtitle1" gutterBottom>
                                             Net breakdown — {dayjs(currentMonth + '-01').format('MMMM YYYY')}
                                         </Typography>
-                                        {wfData.length ? (
-                                            <BarChart
-                                                xAxis={[{ scaleType: 'band', data: wfData.map(d => d.label) }]}
-                                                series={[{ data: wfData.map(d => d.v) }]}
-                                                height={CHART_H}
-                                                margin={{ top: 20, right: 20, bottom: 30, left: 40 }}
-                                                grid={{ vertical: true, horizontal: true }}
-                                            />
-                                        ) : <Typography color="text.secondary">No data.</Typography>}
+                                        <AnimatedChart loading={isLoading} height={CHART_H} delay={0.4}>
+                                            {wfData.length ? (
+                                                <BarChart
+                                                    xAxis={[{ scaleType: 'band', data: wfData.map(d => d.label) }]}
+                                                    series={[{ data: wfData.map(d => d.v) }]}
+                                                    height={CHART_H}
+                                                    margin={{ top: 20, right: 20, bottom: 30, left: 40 }}
+                                                    grid={{ vertical: true, horizontal: true }}
+                                                />
+                                            ) : <Typography color="text.secondary">No data.</Typography>}
+                                        </AnimatedChart>
                                         <Typography variant="caption" color="text.secondary">
                                             Positive bars increase time burn; negative bars reduce it.
                                         </Typography>
-                                    </Paper>
+                                    </AnimatedCard>
                                 </Explain>
                             </Grid>
                             <Grid size={{ xs: 12, md: 6 }}>
@@ -961,16 +1006,18 @@ export default function ImprovedDashboardPage() {
                                     what="Running total of net time burn across the selected period."
                                     how="cum[i] = Σ (timeBurnNet[k]) for k ≤ i. Shows whether you’re trending toward or away from breakeven overall."
                                 >
-                                    <Paper sx={CHART_CARD_SX}>
+                                    <AnimatedCard loading={isLoading} sx={CHART_CARD_SX} variant="lift" delay={0.5}>
                                         <Typography variant="subtitle1" gutterBottom>Cumulative net (hours)</Typography>
-                                        <LineChart
-                                            xAxis={[xMonths]}
-                                            series={[{ label: 'Cumulative net', data: cumNetSeries, color: theme.palette.primary.main }]}
-                                            height={CHART_H}
-                                            margin={{ top: 20, right: 20, bottom: 30, left: 40 }}
-                                            grid={{ vertical: true, horizontal: true }}
-                                        />
-                                    </Paper>
+                                        <AnimatedChart loading={isLoading} height={CHART_H} delay={0.6}>
+                                            <LineChart
+                                                xAxis={[xMonths]}
+                                                series={[{ label: 'Cumulative net', data: cumNetSeries, color: theme.palette.primary.main }]}
+                                                height={CHART_H}
+                                                margin={{ top: 20, right: 20, bottom: 30, left: 40 }}
+                                                grid={{ vertical: true, horizontal: true }}
+                                            />
+                                        </AnimatedChart>
+                                    </AnimatedCard>
                                 </Explain>
                             </Grid>
                         </Grid>
@@ -1079,7 +1126,7 @@ export default function ImprovedDashboardPage() {
                                     what="Share of time costs that are offset by time savings over the period."
                                     how="Coverage = Σ(timeSavingsHours) ÷ Σ(timeCostHours) for the selected months."
                                 >
-                                    <Paper sx={{ p:3, borderRadius:2 }}>
+                                    <Paper sx={{ p:3, borderRadius:2, minHeight: 140 }}>
                                         <Typography variant="subtitle2" color="text.secondary">Coverage</Typography>
                                         <Typography variant="h5" fontWeight={700}>{fmtPct(coverageRatio)}</Typography>
                                         <Typography variant="caption" color="text.secondary">Savings as % of costs (period)</Typography>
@@ -1093,7 +1140,7 @@ export default function ImprovedDashboardPage() {
                                     what="How steady your net time burn is across months (higher is steadier)."
                                     how="Compute mean (μ) and sample standard deviation (σ) of monthly timeBurnNet. Consistency = μ ÷ σ. Requires ≥ 2 months; undefined if σ ≈ 0."
                                 >
-                                    <Paper sx={{ p:3, borderRadius:2 }}>
+                                    <Paper sx={{ p:3, borderRadius:2, minHeight: 140 }}>
                                         <Typography variant="subtitle2" color="text.secondary">Consistency (μ/σ)</Typography>
                                         <Typography variant="h5" fontWeight={700}>{consistency == null ? '—' : consistency.toFixed(2)}</Typography>
                                         <Typography variant="caption" color="text.secondary">Higher = steadier net across months</Typography>
@@ -1107,7 +1154,7 @@ export default function ImprovedDashboardPage() {
                                     what="The months with the lowest (best) and highest (worst) net time burn in the window."
                                     how="Scan monthly timeBurnNet; 'Best' = min value; 'Worst' = max value."
                                 >
-                                    <Paper sx={{ p:3, borderRadius:2 }}>
+                                    <Paper sx={{ p:3, borderRadius:2, minHeight: 140 }}>
                                         <Typography variant="subtitle2" color="text.secondary">Best & Worst month</Typography>
                                         <Stack direction="row" spacing={2}>
                                             <Stack>

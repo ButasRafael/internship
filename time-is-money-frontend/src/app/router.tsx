@@ -16,11 +16,15 @@ import IncomeCrudPage from "@/pages/incomes/IncomeCrudPage.tsx";
 import ActivityCrudPage from "@/pages/activities/ActivityCrudPage.tsx";
 import ObjectCrudPage from "@/pages/objects/ObjectCrudPage.tsx";
 import ProfilePage from '@/pages/profile/ProfilePage';
+import HourlyRatesPage from '@/pages/profile/HourlyRatesPage';
 import BudgetAllocationsPage from "@/pages/budgets/BudgetAllocationsPage.tsx";
 import GoalContributionsPage from "@/pages/goals/GoalContributionsPage.tsx";
 import ExchangeRatesAdminPage from "@/pages/admin/ExchangeRateAdminPage.tsx";
 import UsersAdminPage from "@/pages/admin/UsersAdminPage.tsx";
 import NotificationsPage from '@/pages/notifications/NotificationPage';
+import ScenarioPage from '@/pages/scenarios/ScenarioPage';
+import ScenarioBuilderPage from '@/pages/scenarios/ScenarioBuilderPage';
+import EnhancedScenarioBuilderPage from '@/pages/scenarios/EnhancedScenarioBuilderPage';
 
 export const router = createBrowserRouter([
     { element: <AuthLayout />, children: [
@@ -41,11 +45,15 @@ export const router = createBrowserRouter([
                     { path: 'activities', element: <ActivityCrudPage /> },
                     { path: 'objects',   element: <ObjectCrudPage /> },
                     { path: 'profile', element: <ProfilePage /> },
+                    { path: 'profile/rates', element: <HourlyRatesPage /> },
                     { path: 'budgets/:budgetId/allocations', element: <BudgetAllocationsPage /> },
                     { path: 'goals/:goalId/contributions', element: <GoalContributionsPage /> },
                     { path: 'admin/users', element: <UsersAdminPage /> },
                     { path: 'admin/exchange-rates', element: <ExchangeRatesAdminPage /> },
                     { path: 'notifications', element: <NotificationsPage /> },
+                    { path: 'scenarios', element: <ScenarioPage /> },
+                    { path: 'scenarios/builder', element: <ScenarioBuilderPage /> },
+                    { path: 'scenarios/enhanced', element: <EnhancedScenarioBuilderPage /> },
 
 
                 ]},

@@ -122,6 +122,38 @@ function makeCtx(user: { currency: string; hourly_rate: number | null }): Engine
     };
 }
 
+async function buildHourlyRateFor(
+    userId: number,
+    months: string[],
+    fallback: number | null,
+) : Promise<(mk: string) => number | null> {
+    if (!months.length) return () => fallback;
+    const maxMonth = months.slice().sort()[months.length - 1];
+    const [rows] = await pool.execute<RowDataPacket[]>(
+        `SELECT effective_month, hourly_rate
+         FROM user_hourly_rates
+         WHERE user_id=? AND effective_month <= DATE(CONCAT(?, '-01'))
+         ORDER BY effective_month ASC`,
+        [userId, maxMonth]
+    );
+    const effs = (rows as any[]).map(r => ({
+        ym: dayjs(r.effective_month as any).format('YYYY-MM'),
+        rate: Number(r.hourly_rate)
+    }));
+    const sortedMonths = months.slice().sort();
+    let i = 0;
+    let last: number | null = fallback != null ? Number(fallback) : null;
+    const map: Record<string, number | null> = {};
+    for (const mk of sortedMonths) {
+        while (i < effs.length && effs[i].ym <= mk) {
+            last = effs[i].rate;
+            i++;
+        }
+        map[mk] = last;
+    }
+    return (mk: string) => map[mk] ?? fallback;
+}
+
 // ---- raw data ------------------------------------------------------------
 
 async function getIncomeRows(userId: number) {
@@ -169,10 +201,15 @@ async function rule_percent_expenses_of_income(userId: number, alert: AlertRow, 
     const nowMk = toMonthKey(new Date());
     const months = [nowMk];
 
-    const [incomes, expenses] = await Promise.all([getIncomeRows(userId), getExpenseRows(userId)]);
+    const [incomes, expenses, hrFor] = await Promise.all([
+        getIncomeRows(userId),
+        getExpenseRows(userId),
+        buildHourlyRateFor(userId, months, ctx.hourlyRate ?? null),
+    ]);
+    const ctxM: EngineContext = { ...ctx, hourlyRateFor: hrFor };
     const [inc, exp] = await Promise.all([
-        computeIncomeByMonth(incomes as any, months, ctx),
-        computeExpensesByMonth(expenses as any, months, ctx),
+        computeIncomeByMonth(incomes as any, months, ctxM),
+        computeExpensesByMonth(expenses as any, months, ctxM),
     ]);
 
     const income = inc.moneyByMonth[nowMk] || 0;
@@ -203,8 +240,11 @@ async function rule_budget_overrun(userId: number, alert: AlertRow, ctx: EngineC
     const nowMk = toMonthKey(new Date());
     const months = [nowMk];
 
-    const expenses = await getExpenseRows(userId);
-    const er = await computeExpensesByMonth(expenses as any, months, ctx);
+    const [expenses, hrFor] = await Promise.all([
+        getExpenseRows(userId),
+        buildHourlyRateFor(userId, months, ctx.hourlyRate ?? null),
+    ]);
+    const er = await computeExpensesByMonth(expenses as any, months, { ...ctx, hourlyRateFor: hrFor });
 
     const catSeries = er.byCategoryMoney?.[categoryId];
     const spent = catSeries?.[nowMk] ?? 0;
@@ -233,7 +273,8 @@ async function rule_object_breakeven_reached(userId: number, alert: AlertRow, ct
     const nowMk = toMonthKey(new Date());
 
     const months = monthRange(startMk, nowMk);
-    const or = await computeObjects(rows as any, months, ctx);
+    const hrFor = await buildHourlyRateFor(userId, months, ctx.hourlyRate ?? null);
+    const or = await computeObjects(rows as any, months, { ...ctx, hourlyRateFor: hrFor });
 
     const m = or.metrics.find((mm: ObjectStaticMetrics) => mm.id === obj.id);
     if (!m || m.payback_months == null || m.payback_months <= 0) return;

@@ -4,7 +4,7 @@ import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/store/auth.store';
 import dayjs from 'dayjs';
 
-import { Stack, Typography } from '@mui/material';
+import { Stack, Typography, TextField } from '@mui/material';
 import { fx } from '@/lib/fx';
 import { currentMonthKey, fmtH, objectSnapshotForMonth } from '@/lib/insights';
 
@@ -38,6 +38,7 @@ type ObjectRowUI = ObjectRow & {
 
 export default function ObjectCrudPage() {
     const user = useAuth((s) => s.user)!;
+    const [effectiveRate, setEffectiveRate] = useState<number | null | undefined>(undefined);
 
     const [cats, setCats] = useState<Category[]>([]);
 
@@ -68,26 +69,48 @@ export default function ObjectCrudPage() {
         [user.currency, user.hourly_rate]
     );
 
-    const monthNow = currentMonthKey();
+    const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthKey());
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const rates = await apiFetch<{ month: string; hourly_rate: number | null }[]>(`/api/users/${user.id}/hourly-rates?from=${selectedMonth}&to=${selectedMonth}`);
+                setEffectiveRate(rates?.[0]?.hourly_rate ?? (user.hourly_rate ?? null));
+            } catch {
+                setEffectiveRate(user.hourly_rate ?? null);
+            }
+        })();
+    }, [user.id, user.hourly_rate, selectedMonth]);
 
     return (
         <>
             <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                <TextField
+                    type="month"
+                    label="Month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    size="small"
+                    sx={{ width: 200 }}
+                />
                 <Typography variant="caption" color="text.secondary">
-                    {ctx.hourlyRate
-                        ? `Rate: ${ctx.hourlyRate}/h · ${ctx.userCurrency}`
+                    {effectiveRate
+                        ? `Effective rate for ${selectedMonth}: ${effectiveRate}/h · ${ctx.userCurrency}`
                         : 'Set hourly rate to see hours computed from money'}
                 </Typography>
             </Stack>
 
             <GenericCrudPage<ObjectRowUI>
-                key={`${user.hourly_rate ?? 'NA'}-${user.currency}-${monthNow}`}
+                key={`${user.hourly_rate ?? 'NA'}-${user.currency}-${selectedMonth}`}
                 title="Objects"
                 fetchList={async () => {
                     const rows = await apiFetch<ObjectRow[]>(`/api/users/${user.id}/objects`);
+                    const rates = await apiFetch<{ month: string; hourly_rate: number | null }[]>(`/api/users/${user.id}/hourly-rates?from=${selectedMonth}&to=${selectedMonth}`);
+                    const eff = rates?.[0]?.hourly_rate ?? (user.hourly_rate ?? null);
+                    const ctx2 = { ...ctx, hourlyRateFor: () => eff } as typeof ctx & { hourlyRateFor: (mk: string) => number | null };
                     return await Promise.all(
                         rows.map(async (r) => {
-                            const ins = await objectSnapshotForMonth(r, monthNow, ctx);
+                            const ins = await objectSnapshotForMonth(r, selectedMonth, ctx2);
                             return {
                                 ...r,
                                 price_cents: r.price_cents / 100,

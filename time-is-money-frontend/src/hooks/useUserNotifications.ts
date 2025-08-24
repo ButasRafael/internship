@@ -1,5 +1,7 @@
 
 import useSWR, { mutate as swrMutate} from 'swr';
+import { API } from '@/lib/api';
+import { useAuth } from '@/store/auth.store';
 
 export type NotificationRow = {
     id: number;
@@ -57,9 +59,13 @@ export function useUserNotifications(userId: number | null, opts?: ListOpts) {
             false
         );
         try {
-            await fetch(`${base}/${id}/mark-read`, {
+            const { accessToken } = useAuth.getState();
+            const headers = new Headers();
+            if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+            await fetch(`${API}${base}/${id}/mark-read`, {
                 method: 'POST',
                 credentials: 'include',
+                headers,
             });
         } finally {
             // revalidate unread counter; keep list optimistic to feel instant
@@ -77,9 +83,13 @@ export function useUserNotifications(userId: number | null, opts?: ListOpts) {
             false
         );
         try {
-            await fetch(`${base}/mark-all-read`, {
+            const { accessToken } = useAuth.getState();
+            const headers = new Headers();
+            if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+            await fetch(`${API}${base}/mark-all-read`, {
                 method: 'POST',
                 credentials: 'include',
+                headers,
             });
         } finally {
             swrMutate(`${base}/unread-count`);
@@ -99,14 +109,20 @@ export function useUserNotifications(userId: number | null, opts?: ListOpts) {
 }
 export async function markRead(userId: number, id: number) {
     const base = `/api/users/${userId}/notifications`;
-    await fetch(`${base}/${id}/mark-read`, { method: 'POST', credentials: 'include' });
+    const { accessToken } = useAuth.getState();
+    const headers = new Headers();
+    if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+    await fetch(`${API}${base}/${id}/mark-read`, { method: 'POST', credentials: 'include', headers });
     // nudge badge; caller may also do local optimistic updates
     swrMutate(`${base}/unread-count`);
 }
 
 export async function markAllRead(userId: number) {
     const base = `/api/users/${userId}/notifications`;
-    await fetch(`${base}/mark-all-read`, { method: 'POST', credentials: 'include' });
+    const { accessToken } = useAuth.getState();
+    const headers = new Headers();
+    if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+    await fetch(`${API}${base}/mark-all-read`, { method: 'POST', credentials: 'include', headers });
     swrMutate(`${base}/unread-count`);
 }
 

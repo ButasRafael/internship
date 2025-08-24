@@ -4,7 +4,7 @@ import {
     type MonthKey,
     type AggregateResult,
     moneyToUser,
-    moneyToHours,
+    moneyToHoursForMonth,
     type EngineContext,
     monthStart,
     freqToMonthly,
@@ -117,7 +117,8 @@ export async function allocationHoursForBudget(
         dayjs(budget.period_start).toDate(),
         ctx
     );
-    return moneyToHours(userAmt, ctx);
+    const mk = dayjs(budget.period_start).format('YYYY-MM');
+    return moneyToHoursForMonth(userAmt, mk, ctx);
 }
 
 export async function allocationHoursTotalForBudget(
@@ -143,7 +144,7 @@ export async function activitySnapshotForMonth(
     const mkStart = monthStart(month).toDate();
     const timeCostH = (Number(a.duration_minutes) || 0) / 60;
     const moneyUser = await moneyToUser(Number(a.direct_cost_cents) || 0, a.currency, mkStart, ctx);
-    const moneyH = moneyToHours(moneyUser, ctx);
+    const moneyH = moneyToHoursForMonth(moneyUser, month, ctx);
     const perOccCostH = moneyH == null ? null : timeCostH + moneyH;
     return { k, timeCostH, moneyH, perOccCostH };
 }
@@ -159,7 +160,7 @@ export async function expenseHoursThisMonth(
     month: MonthKey,
     ctx: EngineContext & { amortizeOneTimeMonths?: number | null }
 ): Promise<number | null> {
-    if (!ctx.hourlyRate || ctx.hourlyRate <= 0) return null;
+    if (!(ctx.hourlyRateFor || (ctx.hourlyRate && ctx.hourlyRate > 0))) return null;
 
     const mk = dayjs(month + '-01');
     const inRange =
@@ -171,15 +172,14 @@ export async function expenseHoursThisMonth(
     if (e.frequency === 'once') {
         const n = Math.max(0, Number(ctx.amortizeOneTimeMonths) || 0);
         const amtUser = await moneyToUser(e.amount_cents, e.currency, dayjs(e.start_date).toDate(), ctx);
-        const hTotal = moneyToHours(amtUser, ctx) ?? 0;
-        if (n > 0) return hTotal / n;
+        if (n > 0) return moneyToHoursForMonth(amtUser / n, month, ctx) ?? 0;
         const startMk = dayjs(e.start_date).format('YYYY-MM');
-        return startMk === month ? hTotal : 0;
+        return startMk === month ? (moneyToHoursForMonth(amtUser, month, ctx) ?? 0) : 0;
     }
 
     const k = freqToMonthly(e.frequency);
     const user = await moneyToUser(e.amount_cents, e.currency, mk.startOf('month').toDate(), ctx);
-    const h = moneyToHours(user, ctx) ?? 0;
+    const h = moneyToHoursForMonth(user, month, ctx) ?? 0;
     return h * k;
 }
 
@@ -198,14 +198,15 @@ export async function objectSnapshotForMonth(
     // maintenance valued at the start of the target month
     const mkStart = monthStart(month).toDate();
     const maintUser = await moneyToUser(o.maintenance_cents_per_month, o.currency, mkStart, ctx);
-    const maintH = moneyToHours(maintUser, ctx);
+    const maintH = moneyToHoursForMonth(maintUser, month, ctx);
 
     // capex valued on purchase date, optionally amortized
     let capexHport: number | null = null;
-    if (ctx.hourlyRate && ctx.hourlyRate > 0 && (ctx.amortizeCapexMonths ?? 0) > 0) {
+    if ((ctx.amortizeCapexMonths ?? 0) > 0) {
         const capexUser = await moneyToUser(o.price_cents, o.currency, dayjs(o.purchase_date).toDate(), ctx);
-        const capexH = moneyToHours(capexUser, ctx);
-        if (capexH != null) capexHport = capexH / (ctx.amortizeCapexMonths as number);
+        const n = ctx.amortizeCapexMonths as number;
+        const portH = moneyToHoursForMonth(capexUser / n, month, ctx);
+        capexHport = portH == null ? null : portH;
     }
 
     const savedH = Number(o.hours_saved_per_month) || 0;
@@ -235,7 +236,7 @@ export async function incomeSnapshotForMonth(
         if (recMk === month) {
             const user = await moneyToUser(r.amount_cents, r.currency, dayjs(r.received_at).toDate(), ctx);
             moneyUserThisMonth = user;
-            if (hoursThisMonth != null) hoursThisMonth = moneyToHours(user, ctx);
+            if (hoursThisMonth != null) hoursThisMonth = moneyToHoursForMonth(user, month, ctx);
         }
         return { moneyUserThisMonth, hoursThisMonth };
     }
@@ -244,7 +245,7 @@ export async function incomeSnapshotForMonth(
     const k = freqToMonthly(r.recurring);
     const userOnMonth = await moneyToUser(r.amount_cents, r.currency, monthStart(month).toDate(), ctx);
     moneyUserThisMonth = userOnMonth * k;
-    if (hoursThisMonth != null) hoursThisMonth = moneyToHours(moneyUserThisMonth, ctx);
+    if (hoursThisMonth != null) hoursThisMonth = moneyToHoursForMonth(moneyUserThisMonth, month, ctx);
     return { moneyUserThisMonth, hoursThisMonth };
 }
 
@@ -266,7 +267,8 @@ export async function goalContributionInsight(
     const amtCents = Number(c.amount_cents) || 0;
 
     const moneyUser = await moneyToUser(amtCents, goalCurrency, when, ctx);
-    const hFromMoney = moneyToHours(moneyUser, ctx); // null if no hourly rate
+    const mk = dayjs(when).format('YYYY-MM');
+    const hFromMoney = moneyToHoursForMonth(moneyUser, mk, ctx); // null if no hourly rate
 
     const hNative = Number(c.hours) || 0;
     const hoursTotal = hFromMoney == null ? null : hNative + hFromMoney;
@@ -301,7 +303,8 @@ export async function goalTargetInsight(
             new Date(),
             ctx
         );
-        const h = moneyToHours(moneyUser, ctx);
+        const mk = dayjs().format('YYYY-MM');
+        const h = moneyToHoursForMonth(moneyUser, mk, ctx);
         return { targetH: h == null ? null : h, needsHourlyRate: h == null };
     }
 
@@ -329,7 +332,8 @@ export async function goalProgressInsight(
             } else {
                 const when = c.contributed_at ? dayjs(c.contributed_at).toDate() : new Date();
                 const moneyUser = await moneyToUser(cents, goalCurrency, when, ctx);
-                const h = moneyToHours(moneyUser, ctx) ?? 0;
+                const mk = dayjs(when).format('YYYY-MM');
+                const h = moneyToHoursForMonth(moneyUser, mk, ctx) ?? 0;
                 progressFromMoney += h;
             }
         }

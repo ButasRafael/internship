@@ -24,7 +24,7 @@ import { useState, type ReactNode } from 'react';
 import { useAuth } from '@/store/auth.store';
 import { API } from '@/lib/api';
 import { AnimatePresence } from 'framer-motion';
-import PageTransition from '@/components/ui/PageTransition';
+import EnhancedPageTransition from '@/components/ui/EnhancedPageTransition';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
@@ -42,8 +42,10 @@ function NavButton({ to, end, children }: { to: string; end?: boolean; children:
             sx={{
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 2,
-                py: 1.5,
+                px: { xs: 1, sm: 1.5, md: 2 },
+                py: { xs: 1, sm: 1.5 },
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                minWidth: 'fit-content',
                 borderBottom: match ? '2px solid' : '2px solid transparent',
                 borderColor: match ? 'primary.main' : 'transparent',
                 color: match ? 'primary.main' : 'text.secondary',
@@ -95,21 +97,45 @@ export default function AppLayout() {
                     borderColor: 'divider',
                 }}
             >
-                <Container>
-                    <Toolbar disableGutters sx={{ gap: 2, justifyContent: 'space-between' }}>
-                        <Stack direction="row" spacing={1} alignItems="center">
+                <Container maxWidth={false}>
+                    <Toolbar 
+                        disableGutters 
+                        sx={{ 
+                            gap: { xs: 1, sm: 1.5, md: 2 }, 
+                            justifyContent: 'space-between',
+                            minHeight: { xs: 56, sm: 64 }
+                        }}
+                    >
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 'fit-content' }}>
                             <Box
                                 component="img"
                                 src="/tim-logo.png"
                                 alt="Time-is-Money logo"
-                                sx={{ height: { xs: 32, sm: 40 }, width: 'auto', mr: 1 }}
+                                sx={{ height: { xs: 28, sm: 36 }, width: 'auto', mr: { xs: 0.5, sm: 1 } }}
                             />
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                            <Typography 
+                                variant="h6" 
+                                sx={{ 
+                                    fontWeight: 700, 
+                                    color: 'primary.main',
+                                    whiteSpace: 'nowrap',
+                                    fontSize: { xs: '1rem', sm: '1.25rem' }
+                                }}
+                            >
                                 Time-is-Money
                             </Typography>
                         </Stack>
 
-                        <Stack direction="row" spacing={1} sx={{ flexGrow: 1 }}>
+                        <Stack 
+                            direction="row" 
+                            spacing={{ xs: 0.5, sm: 0.75, md: 1 }} 
+                            sx={{ 
+                                flexGrow: 1, 
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                                mx: { xs: 1, sm: 2 }
+                            }}
+                        >
                             <NavButton to="/" end>
                                 Dashboard
                             </NavButton>
@@ -120,6 +146,7 @@ export default function AppLayout() {
                             <NavButton to="/incomes">Incomes</NavButton>
                             <NavButton to="/activities">Activities</NavButton>
                             <NavButton to="/objects">Objects</NavButton>
+                            <NavButton to="/scenarios/enhanced">Scenarios</NavButton>
                             {(hasPerm('user_view') || hasPerm('exchange_rate_view')) && (
                                 <>
                                     {hasPerm('user_view') && (
@@ -132,33 +159,59 @@ export default function AppLayout() {
                             )}
                         </Stack>
 
-                        <Stack direction="row" spacing={1} alignItems="center">
+                        <Stack 
+                            direction="row" 
+                            spacing={{ xs: 0.5, sm: 1 }} 
+                            alignItems="center"
+                            sx={{ minWidth: 'fit-content' }}
+                        >
                             <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-                                <IconButton onClick={toggle} aria-label="toggle theme" sx={{ mr: 0.5 }}>
+                                <IconButton 
+                                    onClick={toggle} 
+                                    aria-label="toggle theme" 
+                                    sx={{ 
+                                        p: { xs: 0.5, sm: 1 },
+                                        '& .MuiSvgIcon-root': {
+                                            fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                        }
+                                    }}
+                                >
                                     {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
                                 </IconButton>
                             </Tooltip>
 
                             <NotificationBell />
 
-                            <Typography sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}>
+                            <Typography 
+                                sx={{ 
+                                    color: 'text.secondary', 
+                                    display: { xs: 'none', md: 'block' },
+                                    fontSize: { sm: '0.875rem' },
+                                    maxWidth: '120px',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                }}
+                            >
                                 {user?.email}
                             </Typography>
-                            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ p: 0 }}>
+                            <IconButton 
+                                onClick={(e) => setAnchorEl(e.currentTarget)} 
+                                sx={{ p: { xs: 0.25, sm: 0.5 } }}
+                            >
                                 {userInitial ? (
                                     <Avatar
                                         sx={{
                                             bgcolor: 'primary.main',
-                                            width: 32,
-                                            height: 32,
-                                            fontSize: 14,
+                                            width: { xs: 28, sm: 32 },
+                                            height: { xs: 28, sm: 32 },
+                                            fontSize: { xs: 12, sm: 14 },
                                             color: 'primary.contrastText',
                                         }}
                                     >
                                         {userInitial}
                                     </Avatar>
                                 ) : (
-                                    <AccountCircle color="primary" fontSize="large" />
+                                    <AccountCircle color="primary" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }} />
                                 )}
                             </IconButton>
                             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
@@ -179,9 +232,9 @@ export default function AppLayout() {
 
             <Container sx={{ py: 3 }}>
                 <AnimatePresence mode="wait">
-                    <PageTransition key={location.pathname} variant="shared">
+                    <EnhancedPageTransition key={location.pathname} variant="shared">
                         <Outlet />
-                    </PageTransition>
+                    </EnhancedPageTransition>
                 </AnimatePresence>
                 <Box sx={{ py: 4 }} />
             </Container>

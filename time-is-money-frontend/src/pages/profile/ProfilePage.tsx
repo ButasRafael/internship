@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Grid, Paper, Stack, Typography, TextField, Select, MenuItem, Button, Divider, FormControl, InputLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '@/store/auth.store';
 import { apiFetch } from '@/lib/api';
 import { useNotifications } from '@/components/NotificationsContext';
 import { useColorMode } from '@/app/providers';
+import { currentMonthKey } from '@/lib/insights';
 
 const CURRENCIES = ['RON', 'EUR', 'USD', 'GBP', 'CHF'] as const;
 const TIMEZONES = ['Europe/Bucharest','UTC','Europe/Berlin','Europe/London','America/New_York','Asia/Tokyo'] as const;
@@ -42,11 +44,21 @@ export default function ProfilePage() {
         }
         setSaving(true);
         try {
+            // 1) Update base profile (also keep users.hourly_rate in sync for display)
             const updated = await apiFetch(`/api/users/${user.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: user.email, hourly_rate: rate, currency, timezone }),
             });
+            // 2) Update month-effective hourly rate for current month (if provided)
+            if (rate !== null) {
+                const month = currentMonthKey();
+                await apiFetch(`/api/users/${user.id}/hourly-rates`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ month, hourly_rate: rate }),
+                });
+            }
             setUser(updated as any);
             notify.show('Profile updated.', { severity: 'success' });
         } catch (e: any) {
@@ -113,6 +125,7 @@ export default function ProfilePage() {
                                 <Button variant="contained" onClick={saveProfile} disabled={saving || !dirty}>
                                     {saving ? 'Saving…' : 'Save changes'}
                                 </Button>
+                                <Button variant="outlined" component={RouterLink} to="/profile/rates">Manage monthly rates</Button>
                             </Stack>
                         </Stack>
                     </Paper>
